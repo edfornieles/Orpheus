@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Chat Interface - STT + ChatGPT Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f0f0f0;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .status.idle {
+            background: #f8f9fa;
+            color: #495057;
+        }
+        
+        .status.listening {
+            background: #d4edda;
+            color: #155724;
+            animation: pulse 1s infinite;
+        }
+        
+        .status.thinking {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status.speaking {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        button {
+            padding: 12px 24px;
+            margin: 5px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .start-btn {
+            background: #28a745;
+            color: white;
+        }
+        
+        .stop-btn {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .test-btn {
+            background: #007bff;
+            color: white;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .transcript {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            min-height: 50px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .conversation {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+        }
+        
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .user-message {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .ai-message {
+            background: #e8f5e8;
+            border-left: 4px solid #4caf50;
+        }
+        
+        .voice-select {
+            margin: 10px 0;
+        }
+        
+        select {
+            padding: 8px 12px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Debug Chat Interface</h1>
+        <p>Simple interface to test Speech-to-Text + ChatGPT conversation</p>
+        
+        <div id="status" class="status idle">
+            Status: Ready to start
+        </div>
+        
+        <div id="error" class="error"></div>
+        
+        <div class="controls">
+            <button id="startBtn" class="start-btn" onclick="startListening()">
+                🎧 Start Listening
+            </button>
+            <button id="stopBtn" class="stop-btn" onclick="stopListening()" disabled>
+                ⏹️ Stop Listening
+            </button>
+            <button id="testBtn" class="test-btn" onclick="testChat()">
+                🧪 Test ChatGPT
+            </button>
+        </div>
+        
+        <div class="voice-select">
+            <label for="voiceSelect">Voice: </label>
+            <select id="voiceSelect">
+                <option value="orpheus_leah">Orpheus Leah (FP8)</option>
+                <option value="orpheus_jess">Orpheus Jess (FP8)</option>
+                <option value="orpheus_dan">Orpheus Dan (FP8)</option>
+                <option value="orpheus_leah_fp16">Orpheus Leah (FP16)</option>
+            </select>
+        </div>
+        
+        <div class="transcript">
+            <h3>🎤 Live Transcript:</h3>
+            <div id="transcript">Speak to see your words appear here...</div>
+        </div>
+        
+        <div class="conversation">
+            <h3>💬 Conversation:</h3>
+            <div id="conversationHistory">
+                <div class="message ai-message">
+                    <strong>AI:</strong> Hello! I'm ready to chat. Click "Start Listening" and speak to me!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let recognition = null;
+        let isListening = false;
+        let isProcessing = false;
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Debug Chat Interface loaded');
+            checkBrowserSupport();
+            initializeSpeechRecognition();
+        });
+        
+        // Check browser support
+        function checkBrowserSupport() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                showError('❌ Speech recognition not supported. Please use Chrome, Edge, or Safari.');
+                document.getElementById('startBtn').disabled = true;
+                return false;
+            }
+            
+            console.log('✅ Speech recognition supported');
+            return true;
+        }
+        
+        // Initialize speech recognition
+        function initializeSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                showError('Speech recognition not available');
+                return;
+            }
+            
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+            
+            recognition.onstart = function() {
+                console.log('🎤 Speech recognition started');
+                updateStatus('listening', '🎤 Listening... Speak now!');
+            };
+            
+            recognition.onresult = function(event) {
+                let finalTranscript = '';
+                let interimTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                
+                // Update live transcript
+                document.getElementById('transcript').innerHTML = 
+                    '<strong>Final:</strong> ' + finalTranscript + 
+                    '<br><em>Interim:</em> ' + interimTranscript;
+                
+                // Process final transcript
+                if (finalTranscript.trim()) {
+                    processSpeech(finalTranscript.trim());
+                }
+            };
+            
+            recognition.onerror = function(event) {
+                console.error('❌ Speech recognition error:', event.error);
+                if (event.error !== 'no-speech') {
+                    showError('Speech recognition error: ' + event.error);
+                }
+            };
+            
+            recognition.onend = function() {
+                console.log('🛑 Speech recognition ended');
+                if (isListening && !isProcessing) {
+                    // Restart if we should still be listening
+                    setTimeout(() => {
+                        if (isListening) {
+                            recognition.start();
+                        }
+                    }, 100);
+                }
+            };
+            
+            console.log('✅ Speech recognition initialized');
+        }
+        
+        // Start listening
+        async function startListening() {
+            if (!recognition) {
+                showError('Speech recognition not initialized');
+                return;
+            }
+            
+            try {
+                // Request microphone permission
+                await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                isListening = true;
+                recognition.start();
+                
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = false;
+                
+                hideError();
+                console.log('🎧 Started listening');
+                
+            } catch (error) {
+                console.error('❌ Error starting listening:', error);
+                showError('Could not access microphone: ' + error.message);
+                isListening = false;
+            }
+        }
+        
+        // Stop listening
+        function stopListening() {
+            isListening = false;
+            
+            if (recognition) {
+                recognition.stop();
+            }
+            
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+            
+            updateStatus('idle', 'Status: Stopped listening');
+            console.log('🛑 Stopped listening');
+        }
+        
+        // Process speech and send to ChatGPT
+        async function processSpeech(text) {
+            if (isProcessing) return;
+            
+            isProcessing = true;
+            console.log('🗣️ Processing speech:', text);
+            
+            // Add user message to conversation
+            addMessage('user', text);
+            
+            // Update status
+            updateStatus('thinking', '🧠 ChatGPT is thinking...');
+            
+            try {
+                const response = await fetch('/conversation/respond', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        voice: document.getElementById('voiceSelect').value,
+                        session_id: 'debug_session'
+                    })
+                });
+                
+                const data = await response.json();
+                console.log('📡 API response:', data);
+                
+                if (data.success) {
+                    // Add AI response to conversation
+                    addMessage('ai', data.ai_response);
+                    
+                    // Play audio response
+                    if (data.audio_base64) {
+                        updateStatus('speaking', '🔊 AI is speaking...');
+                        await playAudio(data.audio_base64);
+                    }
+                    
+                    updateStatus('listening', '🎤 Listening... Speak now!');
+                    console.log('✅ Conversation completed');
+                    
+                } else {
+                    throw new Error(data.error || 'API returned error');
+                }
+                
+            } catch (error) {
+                console.error('❌ ChatGPT error:', error);
+                showError('ChatGPT error: ' + error.message);
+                addMessage('ai', '[ERROR] Sorry, I encountered an error. Please try again.');
+                
+                if (isListening) {
+                    updateStatus('listening', '🎤 Listening... Speak now!');
+                }
+            } finally {
+                isProcessing = false;
+            }
+        }
+        
+        // Test ChatGPT without speech
+        async function testChat() {
+            const testMessage = 'Hello, this is a test message to check if ChatGPT is working properly.';
+            console.log('🧪 Testing ChatGPT with:', testMessage);
+            await processSpeech(testMessage);
+        }
+        
+        // Play audio response
+        function playAudio(audioBase64) {
+            return new Promise((resolve, reject) => {
+                const audio = new Audio(`data:audio/wav;base64,${audioBase64}`);
+                
+                audio.onended = () => {
+                    console.log('🔇 Audio finished playing');
+                    resolve();
+                };
+                
+                audio.onerror = (error) => {
+                    console.error('❌ Audio error:', error);
+                    reject(error);
+                };
+                
+                audio.play().catch(reject);
+            });
+        }
+        
+        // Add message to conversation
+        function addMessage(sender, text) {
+            const conversation = document.getElementById('conversationHistory');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            messageDiv.innerHTML = `<strong>${sender.toUpperCase()}:</strong> ${text}`;
+            conversation.appendChild(messageDiv);
+            conversation.scrollTop = conversation.scrollHeight;
+        }
+        
+        // Update status display
+        function updateStatus(type, message) {
+            const status = document.getElementById('status');
+            status.className = `status ${type}`;
+            status.textContent = message;
+        }
+        
+        // Show error message
+        function showError(message) {
+            const error = document.getElementById('error');
+            error.textContent = message;
+            error.style.display = 'block';
+            console.error('❌ Error:', message);
+        }
+        
+        // Hide error message
+        function hideError() {
+            document.getElementById('error').style.display = 'none';
+        }
+    </script>
+</body>
+</html> 

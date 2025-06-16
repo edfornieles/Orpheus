@@ -1,0 +1,90 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+.env
+.venv/
+.venv310/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# API Keys and Secrets
+.env.local
+service-account-key.json
+*.key
+*.pem
+config.json
+
+# Audio Files
+*.wav
+*.mp3
+*.m4a
+*.bin
+output/audio_tests/
+generated_audio/
+
+# Logs
+*.log
+logs/
+orpheus_tts.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Docker
+docker-compose.override.yml
+
+# Output directories
+output/
+benchmarks/
+test_results/
+
+# Archive (keep structure but ignore large files)
+archive/**/*.wav
+archive/**/*.mp3
+archive/**/*.bin
+archive/**/*.log

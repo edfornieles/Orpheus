@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎭 Orpheus Archetype Voice Gallery</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .controls {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .filter-btn:hover, .filter-btn.active {
+            background: rgba(255,255,255,0.4);
+            transform: translateY(-2px);
+        }
+        
+        .test-input {
+            display: flex;
+            gap: 10px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        #testText {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 25px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 1rem;
+            outline: none;
+        }
+        
+        #testText::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+        
+        .archetype-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .archetype-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .archetype-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            border-color: rgba(255,255,255,0.4);
+        }
+        
+        .archetype-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .archetype-name {
+            font-size: 1.4rem;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .gender-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .gender-male {
+            background: linear-gradient(45deg, #4a90e2, #7bb3f0);
+        }
+        
+        .gender-female {
+            background: linear-gradient(45deg, #e24a90, #f07bb3);
+        }
+        
+        .archetype-description {
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+        
+        .traits-section {
+            margin-bottom: 15px;
+        }
+        
+        .traits-label {
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .traits-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .trait-tag {
+            background: rgba(255,255,255,0.2);
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .voice-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .test-btn {
+            flex: 1;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .test-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,107,107,0.4);
+        }
+        
+        .test-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .precision-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            z-index: 3;
+        }
+        
+        .fp8 {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+        }
+        
+        .fp16 {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+        }
+        
+        .archetype-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.05;
+            background-size: cover;
+            background-position: center;
+            border-radius: 20px;
+        }
+        
+        .status-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            z-index: 1000;
+            display: none;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        @media (max-width: 768px) {
+            .archetype-gallery {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .test-input {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎭 Orpheus Archetype Voice Gallery</h1>
+            <p>Explore dramatic personas with distinct male and female voice variants. Each archetype embodies unique characteristics, emotional depth, and vocal styling for immersive storytelling.</p>
+        </div>
+        
+        <div class="controls">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">All Archetypes</button>
+                <button class="filter-btn" data-filter="male">Male Voices</button>
+                <button class="filter-btn" data-filter="female">Female Voices</button>
+                <button class="filter-btn" data-filter="fp8">Speed (FP8)</button>
+                <button class="filter-btn" data-filter="fp16">Quality (FP16)</button>
+                <button class="filter-btn" data-filter="mystical">Mystical</button>
+                <button class="filter-btn" data-filter="dramatic">Dramatic</button>
+                <button class="filter-btn" data-filter="playful">Playful</button>
+                <button class="filter-btn" data-filter="authority">Authority</button>
+            </div>
+            
+            <div class="test-input">
+                <input type="text" id="testText" placeholder="Enter text to test with any archetype voice..." 
+                       value="Greetings, mortal. Allow me to demonstrate the unique essence of my character through this mystical demonstration.">
+                <button id="testAllBtn" class="test-btn">Test All Visible</button>
+            </div>
+        </div>
+        
+        <div class="archetype-gallery" id="archetypeGallery">
+            <!-- Archetype cards will be populated by JavaScript -->
+        </div>
+    </div>
+    
+    <div class="status-bar" id="statusBar">
+        <span class="loading-spinner"></span>
+        <span id="statusText">Processing...</span>
+    </div>
+
+    <script>
+        // Archetype voice configurations
+        const archetypeVoices = {
+            'archetype_outbacker_male': {
+                name: 'Male Outbacker',
+                description: 'Rugged, commanding presence with Australian grit and frontier wisdom',
+                gender: 'male',
+                precision: 'fp8',
+                personality_traits: ['rugged', 'hearty', 'commanding', 'wilderness-wise'],
+                vocal_characteristics: ['deep_resonance', 'confident_drawl', 'weathered_warmth'],
+                emotional_range: ['determined', 'protective', 'adventurous', 'loyal'],
+                category: ['authority', 'dramatic']
+            },
+            'archetype_outbacker_female': {
+                name: 'Female Outbacker',
+                description: 'Strong, warm matriarchal presence with frontier spirit and nurturing strength',
+                gender: 'female',
+                precision: 'fp8',
+                personality_traits: ['strong', 'nurturing', 'resilient', 'wise'],
+                vocal_characteristics: ['warm_authority', 'maternal_strength', 'frontier_grit'],
+                emotional_range: ['protective', 'encouraging', 'steadfast', 'compassionate'],
+                category: ['authority', 'dramatic']
+            },
+            'archetype_rocker_male': {
+                name: 'Male Rocker',
+                description: 'Gritty, rebellious spirit with raw musical energy and passionate authenticity',
+                gender: 'male',
+                precision: 'fp8',
+                personality_traits: ['rebellious', 'passionate', 'authentic', 'edgy'],
+                vocal_characteristics: ['raspy_edge', 'confident_growl', 'musical_rhythm'],
+                emotional_range: ['intense', 'passionate', 'defiant', 'expressive'],
+                category: ['dramatic', 'playful']
+            },
+            'archetype_rocker_female': {
+                name: 'Female Rocker',
+                description: 'Fierce, empowered voice with rock goddess energy and commanding presence',
+                gender: 'female',
+                precision: 'fp8',
+                personality_traits: ['fierce', 'empowered', 'authentic', 'bold'],
+                vocal_characteristics: ['powerful_range', 'emotional_grit', 'commanding_presence'],
+                emotional_range: ['empowered', 'passionate', 'bold', 'expressive'],
+                category: ['dramatic', 'authority']
+            },
+            'archetype_clown_male': {
+                name: 'Male Clown',
+                description: 'Theatrical, whimsical entertainer with playful energy and comedic timing',
+                gender: 'male',
+                precision: 'fp8',
+                personality_traits: ['whimsical', 'entertaining', 'playful', 'theatrical'],
+                vocal_characteristics: ['exaggerated_shifts', 'comedic_timing', 'playful_energy'],
+                emotional_range: ['joyful', 'mischievous', 'entertaining', 'dramatic'],
+                category: ['playful', 'dramatic']
+            },
+            'archetype_clown_female': {
+                name: 'Female Clown',
+                description: 'Bright, effervescent performer with delightful unpredictability and infectious joy',
+                gender: 'female',
+                precision: 'fp8',
+                personality_traits: ['effervescent', 'delightful', 'unpredictable', 'entertaining'],
+                vocal_characteristics: ['bright_energy', 'playful_shifts', 'musical_laughter'],
+                emotional_range: ['delighted', 'playful', 'surprising', 'joyful'],
+                category: ['playful', 'dramatic']
+            },
+            'archetype_royal_male': {
+                name: 'Male Royal',
+                description: 'Regal, commanding presence with noble authority and measured elegance',
+                gender: 'male',
+                precision: 'fp16',
+                personality_traits: ['regal', 'commanding', 'noble', 'dignified'],
+                vocal_characteristics: ['measured_authority', 'refined_diction', 'royal_bearing'],
+                emotional_range: ['authoritative', 'dignified', 'commanding', 'noble'],
+                category: ['authority', 'dramatic']
+            },
+            'archetype_royal_female': {
+                name: 'Female Royal',
+                description: 'Graceful, sophisticated queen with elegant authority and royal composure',
+                gender: 'female',
+                precision: 'fp16',
+                personality_traits: ['graceful', 'sophisticated', 'elegant', 'authoritative'],
+                vocal_characteristics: ['elegant_authority', 'refined_grace', 'queenly_presence'],
+                emotional_range: ['graceful', 'dignified', 'elegant', 'commanding'],
+                category: ['authority', 'dramatic']
+            },
+            'archetype_beatnik_male': {
+                name: 'Male Beatnik',
+                description: 'Cool, philosophical poet with laid-back wisdom and artistic contemplation',
+                gender: 'male',
+                precision: 'fp8',
+                personality_traits: ['philosophical', 'cool', 'artistic', 'contemplative'],
+                vocal_characteristics: ['relaxed_cadence', 'poetic_flow', 'thoughtful_pauses'],
+                emotional_range: ['contemplative', 'artistic', 'philosophical', 'cool'],
+                category: ['mystical', 'playful']
+            },
+            'archetype_beatnik_female': {
+                name: 'Female Beatnik',
+                description: 'Sultry, artistic muse with poetic sensibility and introspective grace',
+                gender: 'female',
+                precision: 'fp8',
+                personality_traits: ['sultry', 'artistic', 'poetic', 'introspective'],
+                vocal_characteristics: ['sultry_warmth', 'artistic_flow', 'poetic_grace'],
+                emotional_range: ['introspective', 'artistic', 'passionate', 'thoughtful'],
+                category: ['mystical', 'dramatic']
+            },
+            'archetype_mystic_male': {
+                name: 'Male Mystic',
+                description: 'Ethereal sage with otherworldly wisdom and transcendent presence',
+                gender: 'male',
+                precision: 'fp16',
+                personality_traits: ['ethereal', 'wise', 'otherworldly', 'mystical'],
+                vocal_characteristics: ['flowing_intonation', 'hypnotic_quality', 'ethereal_presence'],
+                emotional_range: ['mystical', 'wise', 'ethereal', 'transcendent'],
+                category: ['mystical', 'authority']
+            },
+            'archetype_mystic_female': {
+                name: 'Female Mystic',
+                description: 'Celestial oracle with enchanting wisdom and ethereal softness',
+                gender: 'female',
+                precision: 'fp16',
+                personality_traits: ['celestial', 'enchanting', 'wise', 'mystical'],
+                vocal_characteristics: ['ethereal_softness', 'enchanting_flow', 'celestial_grace'],
+                emotional_range: ['mystical', 'enchanting', 'wise', 'celestial'],
+                category: ['mystical', 'dramatic']
+            },
+            'archetype_fortune_teller_male': {
+                name: 'Male Fortune Teller',
+                description: 'Enigmatic seer with mysterious gravitas and prophetic intensity',
+                gender: 'male',
+                precision: 'fp8',
+                personality_traits: ['enigmatic', 'mysterious', 'prophetic', 'dramatic'],
+                vocal_characteristics: ['dramatic_pauses', 'varied_tension', 'mysterious_depth'],
+                emotional_range: ['mysterious', 'dramatic', 'prophetic', 'intense'],
+                category: ['mystical', 'dramatic']
+            },
+            'archetype_fortune_teller_female': {
+                name: 'Female Fortune Teller',
+                description: 'Mystical seer with captivating presence and prophetic allure',
+                gender: 'female',
+                precision: 'fp8',
+                personality_traits: ['mystical', 'captivating', 'prophetic', 'alluring'],
+                vocal_characteristics: ['captivating_presence', 'mystical_allure', 'prophetic_intensity'],
+                emotional_range: ['mystical', 'captivating', 'dramatic', 'prophetic'],
+                category: ['mystical', 'dramatic']
+            },
+            'archetype_mad_professor_male': {
+                name: 'Male Mad Professor',
+                description: 'Brilliant scientist with chaotic genius and manic energy',
+                gender: 'male',
+                precision: 'fp8',
+                personality_traits: ['brilliant', 'chaotic', 'eccentric', 'inventive'],
+                vocal_characteristics: ['chaotic_energy', 'sudden_inflections', 'manic_brilliance'],
+                emotional_range: ['excited', 'manic', 'brilliant', 'chaotic'],
+                category: ['playful', 'dramatic']
+            },
+            'archetype_mad_professor_female': {
+                name: 'Female Mad Professor',
+                description: 'Brilliant inventor with delightful chaos and inventive spirit',
+                gender: 'female',
+                precision: 'fp8',
+                personality_traits: ['brilliant', 'inventive', 'delightfully_mad', 'eccentric'],
+                vocal_characteristics: ['brilliant_energy', 'delightful_chaos', 'inventive_spirit'],
+                emotional_range: ['excited', 'brilliant', 'inventive', 'chaotic'],
+                category: ['playful', 'dramatic']
+            },
+            'archetype_angel_male': {
+                name: 'Male Angel',
+                description: 'Divine messenger with celestial authority and pure resonance',
+                gender: 'male',
+                precision: 'fp16',
+                personality_traits: ['divine', 'pure', 'commanding', 'celestial'],
+                vocal_characteristics: ['celestial_harmony', 'divine_authority', 'pure_resonance'],
+                emotional_range: ['divine', 'pure', 'commanding', 'benevolent'],
+                category: ['mystical', 'authority']
+            },
+            'archetype_angel_female': {
+                name: 'Female Angel',
+                description: 'Heavenly presence with pure grace and divine softness',
+                gender: 'female',
+                precision: 'fp16',
+                personality_traits: ['heavenly', 'pure', 'graceful', 'divine'],
+                vocal_characteristics: ['heavenly_grace', 'pure_harmony', 'divine_softness'],
+                emotional_range: ['pure', 'graceful', 'divine', 'serene'],
+                category: ['mystical', 'dramatic']
+            },
+            'archetype_devil_male': {
+                name: 'Male Devil',
+                description: 'Sinister tempter with dark charisma and deliberate pacing',
+                gender: 'male',
+                precision: 'fp8',
+                personality_traits: ['sinister', 'charismatic', 'tempting', 'dark'],
+                vocal_characteristics: ['deep_gravelly', 'mischievous_tone', 'deliberate_pacing'],
+                emotional_range: ['mischievous', 'tempting', 'dark', 'charismatic'],
+                category: ['dramatic', 'authority']
+            },
+            'archetype_devil_female': {
+                name: 'Female Devil',
+                description: 'Seductive temptress with dark allure and tempting whispers',
+                gender: 'female',
+                precision: 'fp8',
+                personality_traits: ['seductive', 'alluring', 'tempting', 'dangerous'],
+                vocal_characteristics: ['seductive_warmth', 'dark_allure', 'tempting_whispers'],
+                emotional_range: ['seductive', 'tempting', 'dangerous', 'alluring'],
+                category: ['dramatic', 'mystical']
+            },
+            'archetype_vampire_male': {
+                name: 'Male Vampire',
+                description: 'Ancient predator with seductive darkness and calculated delivery',
+                gender: 'male',
+                precision: 'fp16',
+                personality_traits: ['seductive', 'ancient', 'predatory', 'calculated'],
+                vocal_characteristics: ['seductive_darkness', 'calculated_delivery', 'intense_whispers'],
+                emotional_range: ['seductive', 'calculated', 'intense', 'dark'],
+                category: ['dramatic', 'mystical']
+            },
+            'archetype_vampire_female': {
+                name: 'Female Vampire',
+                description: 'Eternal temptress with dark allure and tempting grace',
+                gender: 'female',
+                precision: 'fp16',
+                personality_traits: ['eternal', 'tempting', 'alluring', 'dangerous'],
+                vocal_characteristics: ['dark_allure', 'tempting_whispers', 'eternal_grace'],
+                emotional_range: ['tempting', 'alluring', 'dangerous', 'eternal'],
+                category: ['dramatic', 'mystical']
+            },
+            'archetype_pirate_male': {
+                name: 'Male Pirate',
+                description: 'Swashbuckling captain with seafaring authority and commanding presence',
+                gender: 'male',
+                precision: 'fp8',
+                personality_traits: ['swashbuckling', 'bold', 'commanding', 'seafaring'],
+                vocal_characteristics: ['rough_edge', 'commanding_presence', 'seafaring_grit'],
+                emotional_range: ['bold', 'commanding', 'adventurous', 'rough'],
+                category: ['dramatic', 'authority']
+            },
+            'archetype_pirate_female': {
+                name: 'Female Pirate',
+                description: 'Fierce captain with bold maritime spirit and commanding edge',
+                gender: 'female',
+                precision: 'fp8',
+                personality_traits: ['fierce', 'bold', 'maritime', 'commanding'],
+                vocal_characteristics: ['fierce_boldness', 'maritime_spirit', 'commanding_edge'],
+                emotional_range: ['fierce', 'bold', 'commanding', 'adventurous'],
+                category: ['dramatic', 'authority']
+            },
+            'archetype_wizard_male': {
+                name: 'Male Wizard',
+                description: 'Ancient spellcaster with mystical authority and theatrical projection',
+                gender: 'male',
+                precision: 'fp16',
+                personality_traits: ['ancient', 'mystical', 'powerful', 'wise'],
+                vocal_characteristics: ['deep_enunciation', 'mystical_power', 'theatrical_projection'],
+                emotional_range: ['mystical', 'powerful', 'wise', 'ancient'],
+                category: ['mystical', 'authority']
+            },
+            'archetype_witch_female': {
+                name: 'Female Witch',
+                description: 'Enchanting sorceress with magical wisdom and mystical projection',
+                gender: 'female',
+                precision: 'fp16',
+                personality_traits: ['enchanting', 'wise', 'powerful', 'mystical'],
+                vocal_characteristics: ['enchanting_power', 'mystical_wisdom', 'magical_projection'],
+                emotional_range: ['enchanting', 'mystical', 'powerful', 'wise'],
+                category: ['mystical', 'dramatic']
+            }
+        };
+
+        // Global state
+        let currentFilter = 'all';
+        let isPlaying = false;
+
+        // Initialize the gallery
+        function initializeGallery() {
+            renderArchetypeCards();
+            setupEventListeners();
+        }
+
+        // Render archetype cards
+        function renderArchetypeCards() {
+            const gallery = document.getElementById('archetypeGallery');
+            gallery.innerHTML = '';
+
+            Object.entries(archetypeVoices).forEach(([voiceId, config]) => {
+                if (shouldShowCard(config)) {
+                    const card = createArchetypeCard(voiceId, config);
+                    gallery.appendChild(card);
+                }
+            });
+        }
+
+        // Check if card should be shown based on current filter
+        function shouldShowCard(config) {
+            switch (currentFilter) {
+                case 'all':
+                    return true;
+                case 'male':
+                    return config.gender === 'male';
+                case 'female':
+                    return config.gender === 'female';
+                case 'fp8':
+                    return config.precision === 'fp8';
+                case 'fp16':
+                    return config.precision === 'fp16';
+                case 'mystical':
+                case 'dramatic':
+                case 'playful':
+                case 'authority':
+                    return config.category.includes(currentFilter);
+                default:
+                    return true;
+            }
+        }
+
+        // Create individual archetype card
+        function createArchetypeCard(voiceId, config) {
+            const card = document.createElement('div');
+            card.className = 'archetype-card';
+            card.innerHTML = `
+                <div class="precision-badge ${config.precision}">${config.precision.toUpperCase()}</div>
+                <div class="archetype-header">
+                    <div class="archetype-name">${config.name}</div>
+                    <div class="gender-badge gender-${config.gender}">${config.gender}</div>
+                </div>
+                <div class="archetype-description">${config.description}</div>
+                
+                <div class="traits-section">
+                    <div class="traits-label">Personality Traits</div>
+                    <div class="traits-list">
+                        ${config.personality_traits.map(trait => 
+                            `<span class="trait-tag">${trait.replace('_', ' ')}</span>`
+                        ).join('')}
+                    </div>
+                </div>
+                
+                <div class="traits-section">
+                    <div class="traits-label">Vocal Characteristics</div>
+                    <div class="traits-list">
+                        ${config.vocal_characteristics.map(char => 
+                            `<span class="trait-tag">${char.replace('_', ' ')}</span>`
+                        ).join('')}
+                    </div>
+                </div>
+                
+                <div class="traits-section">
+                    <div class="traits-label">Emotional Range</div>
+                    <div class="traits-list">
+                        ${config.emotional_range.map(emotion => 
+                            `<span class="trait-tag">${emotion}</span>`
+                        ).join('')}
+                    </div>
+                </div>
+                
+                <div class="voice-controls">
+                    <button class="test-btn" onclick="testVoice('${voiceId}')">
+                        🎭 Test Voice
+                    </button>
+                </div>
+            `;
+            return card;
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    currentFilter = e.target.dataset.filter;
+                    renderArchetypeCards();
+                });
+            });
+
+            // Test all button
+            document.getElementById('testAllBtn').addEventListener('click', testAllVisible);
+        }
+
+        // Test individual voice
+        async function testVoice(voiceId) {
+            if (isPlaying) return;
+            
+            const text = document.getElementById('testText').value.trim();
+            if (!text) {
+                alert('Please enter some text to test!');
+                return;
+            }
+
+            const config = archetypeVoices[voiceId];
+            showStatus(`Testing ${config.name}...`);
+            
+            try {
+                isPlaying = true;
+                
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: text,
+                        voice: voiceId,
+                        emotion_mode: 'dramatic'
+                    })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const audioUrl = URL.createObjectURL(blob);
+                    const audio = new Audio(audioUrl);
+                    
+                    showStatus(`🔊 Playing ${config.name}`);
+                    
+                    audio.onended = () => {
+                        isPlaying = false;
+                        hideStatus();
+                        URL.revokeObjectURL(audioUrl);
+                    };
+                    
+                    audio.onerror = () => {
+                        isPlaying = false;
+                        hideStatus();
+                        showStatus('❌ Audio playback failed', 3000);
+                    };
+                    
+                    await audio.play();
+                } else {
+                    throw new Error(`Server responded with ${response.status}`);
+                }
+            } catch (error) {
+                isPlaying = false;
+                console.error('Voice test error:', error);
+                showStatus(`❌ Error testing ${config.name}: ${error.message}`, 3000);
+            }
+        }
+
+        // Test all visible voices
+        async function testAllVisible() {
+            const text = document.getElementById('testText').value.trim();
+            if (!text) {
+                alert('Please enter some text to test!');
+                return;
+            }
+
+            const visibleVoices = Object.entries(archetypeVoices).filter(([_, config]) => 
+                shouldShowCard(config)
+            );
+
+            for (let i = 0; i < visibleVoices.length; i++) {
+                const [voiceId, config] = visibleVoices[i];
+                showStatus(`Testing ${i + 1}/${visibleVoices.length}: ${config.name}...`);
+                
+                await testVoice(voiceId);
+                
+                // Wait a bit between tests
+                if (i < visibleVoices.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+
+            hideStatus();
+        }
+
+        // Status functions
+        function showStatus(message, duration = null) {
+            const statusBar = document.getElementById('statusBar');
+            const statusText = document.getElementById('statusText');
+            
+            statusText.textContent = message;
+            statusBar.style.display = 'block';
+            
+            if (duration) {
+                setTimeout(hideStatus, duration);
+            }
+        }
+
+        function hideStatus() {
+            document.getElementById('statusBar').style.display = 'none';
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializeGallery);
+    </script>
+</body>
+</html> 

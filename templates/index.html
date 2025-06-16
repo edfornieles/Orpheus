@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orpheus TTS - Text to Speech Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .demo-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .text-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            resize: vertical;
+            min-height: 120px;
+            transition: border-color 0.3s ease;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .voice-selector {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+
+        .voice-selector:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .audio-player {
+            width: 100%;
+            margin: 15px 0;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .error {
+            display: none;
+            padding: 15px;
+            background: #fee;
+            border: 1px solid #fcc;
+            border-radius: 8px;
+            color: #c33;
+            margin-top: 15px;
+        }
+
+        .examples {
+            margin-top: 30px;
+        }
+
+        .examples h3 {
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .example-text {
+            background: #f0f0f0;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            font-size: 14px;
+        }
+
+        .example-text:hover {
+            background: #e0e0e0;
+        }
+
+        .voice-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .voice-card {
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .voice-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .voice-card.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .voice-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .voice-desc {
+            font-size: 12px;
+            color: #666;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .demo-card {
+                padding: 25px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .stats {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎤 Orpheus TTS</h1>
+            <p>State-of-the-art text-to-speech powered by AI</p>
+        </div>
+
+        <div class="demo-card">
+            <form id="ttsForm">
+                <div class="form-group">
+                    <label for="textInput">Enter your text:</label>
+                    <textarea 
+                        id="textInput" 
+                        class="text-input" 
+                        placeholder="Type or paste your text here... Try asking a question, telling a story, or expressing emotions!"
+                        maxlength="1000"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Choose a voice:</label>
+                    <div id="voiceGrid" class="voice-grid">
+                        <!-- Voice cards will be loaded here -->
+                    </div>
+                </div>
+
+                <button type="submit" class="generate-btn" id="generateBtn">
+                    🗣️ Generate Speech
+                </button>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Generating your speech...</p>
+            </div>
+
+            <div class="error" id="error"></div>
+
+            <div class="result" id="result">
+                <h3>🎵 Generated Audio:</h3>
+                <audio controls class="audio-player" id="audioPlayer">
+                    Your browser does not support the audio element.
+                </audio>
+                <div class="stats" id="stats"></div>
+            </div>
+
+            <div class="examples">
+                <h3>💡 Try these examples:</h3>
+                <div class="example-text" onclick="setExample(this)">
+                    Hello! Welcome to Orpheus TTS. This is a demonstration of state-of-the-art text-to-speech technology.
+                </div>
+                <div class="example-text" onclick="setExample(this)">
+                    The quick brown fox jumps over the lazy dog. This sentence contains every letter of the alphabet!
+                </div>
+                <div class="example-text" onclick="setExample(this)">
+                    Wow, I can't believe how natural this sounds! The emotion and intonation are incredibly realistic.
+                </div>
+                <div class="example-text" onclick="setExample(this)">
+                    Once upon a time, in a galaxy far, far away, there lived a robot who dreamed of becoming human.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedVoice = 'tara';
+        let voices = [];
+
+        // Load voices when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadVoices();
+        });
+
+        // Load available voices
+        async function loadVoices() {
+            try {
+                const response = await fetch('/voices');
+                voices = await response.json();
+                renderVoices();
+            } catch (error) {
+                console.error('Error loading voices:', error);
+            }
+        }
+
+        // Render voice selection cards
+        function renderVoices() {
+            const voiceGrid = document.getElementById('voiceGrid');
+            voiceGrid.innerHTML = '';
+
+            voices.forEach(voice => {
+                const voiceCard = document.createElement('div');
+                voiceCard.className = `voice-card ${voice.id === selectedVoice ? 'selected' : ''}`;
+                voiceCard.onclick = () => selectVoice(voice.id);
+                voiceCard.innerHTML = `
+                    <div class="voice-name">${voice.name}</div>
+                    <div class="voice-desc">${voice.description}</div>
+                `;
+                voiceGrid.appendChild(voiceCard);
+            });
+        }
+
+        // Select a voice
+        function selectVoice(voiceId) {
+            selectedVoice = voiceId;
+            renderVoices();
+        }
+
+        // Set example text
+        function setExample(element) {
+            document.getElementById('textInput').value = element.textContent.trim();
+        }
+
+        // Handle form submission
+        document.getElementById('ttsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const text = document.getElementById('textInput').value.trim();
+            if (!text) {
+                showError('Please enter some text to convert to speech.');
+                return;
+            }
+
+            showLoading(true);
+            hideError();
+            hideResult();
+
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        voice: selectedVoice
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showResult(data);
+                } else {
+                    showError(data.error || 'Unknown error occurred');
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        // Show loading state
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            document.getElementById('generateBtn').disabled = show;
+        }
+
+        // Show result
+        function showResult(data) {
+            const audioPlayer = document.getElementById('audioPlayer');
+            const stats = document.getElementById('stats');
+            
+            audioPlayer.src = data.audio_url;
+            stats.innerHTML = `
+                <span>Duration: ${data.duration}s</span>
+                <span>Generation Time: ${data.generation_time}s</span>
+                <span>Chunks: ${data.chunks}</span>
+            `;
+            
+            document.getElementById('result').style.display = 'block';
+            
+            // Auto-play the audio
+            audioPlayer.play().catch(e => {
+                console.log('Auto-play prevented by browser policy');
+            });
+        }
+
+        // Show error
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        // Hide error
+        function hideError() {
+            document.getElementById('error').style.display = 'none';
+        }
+
+        // Hide result
+        function hideResult() {
+            document.getElementById('result').style.display = 'none';
+        }
+
+        // Character counter for text input
+        document.getElementById('textInput').addEventListener('input', function() {
+            const text = this.value;
+            const remaining = 1000 - text.length;
+            
+            // You could add a character counter here if desired
+        });
+    </script>
+</body>
+</html> 

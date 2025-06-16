@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orpheus TTS - FAST Real-time Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .speed-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin: 10px auto;
+            display: inline-block;
+            font-weight: bold;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            margin-bottom: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .quick-input {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .text-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            resize: none;
+            height: 60px;
+            transition: border-color 0.3s ease;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: #ff6b6b;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            align-items: center;
+        }
+
+        .voice-select {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .speak-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .speak-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .speak-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            margin: 10px 0;
+            padding: 12px 15px;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+
+        .user-message {
+            background: #f0f0f0;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .assistant-message {
+            background: #e3f2fd;
+            margin-right: auto;
+        }
+
+        .audio-player {
+            width: 100%;
+            margin: 5px 0;
+            height: 30px;
+        }
+
+        .stats {
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .speed-indicator {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        .speed-good { background: #4caf50; color: white; }
+        .speed-ok { background: #ff9800; color: white; }
+        .speed-slow { background: #f44336; color: white; }
+
+        .quick-phrases {
+            margin-top: 15px;
+        }
+
+        .quick-phrase {
+            display: inline-block;
+            background: #f0f0f0;
+            padding: 8px 12px;
+            margin: 5px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.2s ease;
+        }
+
+        .quick-phrase:hover {
+            background: #e0e0e0;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #ff6b6b;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 5px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            display: none;
+            padding: 10px;
+            background: #fee;
+            border: 1px solid #fcc;
+            border-radius: 8px;
+            color: #c33;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ Orpheus TTS FAST</h1>
+            <p>Real-time Conversation Mode</p>
+            <div class="speed-badge">Optimized for Speed</div>
+        </div>
+
+        <div class="chat-container" id="chatContainer">
+            <div class="message assistant-message">
+                <strong>🎤 Orpheus TTS:</strong> Ready for real-time conversation! Type short phrases for fastest response.
+            </div>
+        </div>
+
+        <div class="quick-input">
+            <textarea 
+                id="textInput" 
+                class="text-input" 
+                placeholder="Type a short phrase for fastest response..."
+                maxlength="200"></textarea>
+            
+            <div class="controls">
+                <select id="voiceSelect" class="voice-select">
+                    <option value="tara">Tara ⚡</option>
+                    <option value="leah">Leah ⚡</option>
+                    <option value="jess">Jess ⚡</option>
+                    <option value="leo">Leo ⚡</option>
+                </select>
+                <button id="speakBtn" class="speak-btn">⚡ Speak</button>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Generating...</p>
+            </div>
+
+            <div class="error" id="error"></div>
+
+            <div class="quick-phrases">
+                <strong>Quick phrases:</strong><br>
+                <span class="quick-phrase" onclick="setQuickPhrase('Hello there!')">Hello there!</span>
+                <span class="quick-phrase" onclick="setQuickPhrase('How are you doing?')">How are you doing?</span>
+                <span class="quick-phrase" onclick="setQuickPhrase('That sounds great!')">That sounds great!</span>
+                <span class="quick-phrase" onclick="setQuickPhrase('Tell me more about that.')">Tell me more about that.</span>
+                <span class="quick-phrase" onclick="setQuickPhrase('I understand completely.')">I understand completely.</span>
+                <span class="quick-phrase" onclick="setQuickPhrase('Let me think about it.')">Let me think about it.</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedVoice = 'tara';
+
+        // Handle Enter key
+        document.getElementById('textInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                generateSpeech();
+            }
+        });
+
+        // Handle speak button
+        document.getElementById('speakBtn').addEventListener('click', generateSpeech);
+
+        // Handle voice selection
+        document.getElementById('voiceSelect').addEventListener('change', function() {
+            selectedVoice = this.value;
+        });
+
+        // Set quick phrase
+        function setQuickPhrase(phrase) {
+            document.getElementById('textInput').value = phrase;
+            document.getElementById('textInput').focus();
+        }
+
+        // Generate speech with optimizations
+        async function generateSpeech() {
+            const text = document.getElementById('textInput').value.trim();
+            if (!text) return;
+
+            // Add user message to chat
+            addMessage(text, 'user');
+            document.getElementById('textInput').value = '';
+
+            showLoading(true);
+            hideError();
+
+            try {
+                const startTime = Date.now();
+                
+                const response = await fetch('/generate_fast', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        voice: selectedVoice
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const totalTime = (Date.now() - startTime) / 1000;
+                    addAudioMessage(data, totalTime);
+                } else {
+                    showError(data.error || 'Unknown error occurred');
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Add text message to chat
+        function addMessage(text, sender) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            if (sender === 'user') {
+                messageDiv.innerHTML = `<strong>You:</strong> ${text}`;
+            } else {
+                messageDiv.innerHTML = `<strong>🎤 TTS:</strong> ${text}`;
+            }
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Add audio message to chat
+        function addAudioMessage(data, totalTime) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message assistant-message';
+            
+            const speedRatio = data.speed_ratio || (data.duration / data.generation_time);
+            const speedClass = speedRatio >= 1.0 ? 'speed-good' : speedRatio >= 0.5 ? 'speed-ok' : 'speed-slow';
+            const speedText = speedRatio >= 1.0 ? 'REAL-TIME!' : speedRatio >= 0.5 ? 'FAST' : 'SLOW';
+            
+            messageDiv.innerHTML = `
+                <strong>🎤 Audio Generated:</strong>
+                <audio controls class="audio-player" autoplay>
+                    <source src="${data.audio_url}" type="audio/wav">
+                </audio>
+                <div class="stats">
+                    Duration: ${data.duration}s | 
+                    Generation: ${data.generation_time}s | 
+                    Total: ${totalTime.toFixed(2)}s
+                    <span class="speed-indicator ${speedClass}">${speedText} ${speedRatio.toFixed(1)}x</span>
+                </div>
+            `;
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Show/hide loading
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            document.getElementById('speakBtn').disabled = show;
+        }
+
+        // Show error
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        // Hide error
+        function hideError() {
+            document.getElementById('error').style.display = 'none';
+        }
+
+        // Focus on input when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('textInput').focus();
+        });
+    </script>
+</body>
+</html> 

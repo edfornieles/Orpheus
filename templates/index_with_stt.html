@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orpheus TTS - Emotional AI Voice Conversation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .demo-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            margin-bottom: 30px;
+        }
+
+        /* Speech Recognition Controls */
+        .speech-controls {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 2px solid #e9ecef;
+        }
+
+        .speech-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 15px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #dc3545;
+            transition: all 0.3s ease;
+        }
+
+        .status-indicator.listening {
+            background: #28a745;
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-indicator.speaking {
+            background: #ffc107;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .speech-toggle {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .speech-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 140px;
+        }
+
+        .speech-btn.primary {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        .speech-btn.secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+        }
+
+        .speech-btn.danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+        }
+
+        .speech-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .speech-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Audio Level Meter */
+        .audio-meter {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .audio-level {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745 0%, #ffc107 70%, #dc3545 100%);
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+
+        /* Live Transcript */
+        .live-transcript {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 60px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .transcript-text {
+            font-size: 16px;
+            line-height: 1.4;
+            color: #495057;
+        }
+
+        .transcript-text.interim {
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        /* Conversation History */
+        .conversation-history {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .conversation-item {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .conversation-item.user {
+            background: #e3f2fd;
+            margin-left: 20px;
+        }
+
+        .conversation-item.ai {
+            background: #f3e5f5;
+            margin-right: 20px;
+        }
+
+        .conversation-label {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .conversation-text {
+            font-size: 15px;
+            line-height: 1.4;
+        }
+
+        .conversation-time {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        /* Original TTS Form */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .text-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            resize: vertical;
+            min-height: 120px;
+            transition: border-color 0.3s ease;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .voice-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .voice-card {
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .voice-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .voice-card.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .voice-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .voice-desc {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .audio-player {
+            width: 100%;
+            margin: 15px 0;
+        }
+
+        .error {
+            display: none;
+            padding: 15px;
+            background: #fee;
+            border: 1px solid #fcc;
+            border-radius: 8px;
+            color: #c33;
+            margin-top: 15px;
+        }
+
+        .settings {
+            background: #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .settings h3 {
+            margin-bottom: 15px;
+            color: #495057;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .setting-item label {
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .setting-item input[type="range"] {
+            width: 100px;
+        }
+
+        .setting-item input[type="checkbox"] {
+            transform: scale(1.2);
+        }
+
+        /* Emotional Testing Section */
+        .emotional-testing {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 2px solid #ffc1cc;
+        }
+
+        .emotional-testing h3 {
+            color: #721c24;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.5em;
+        }
+
+        .emotion-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .emotion-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .emotion-btn.joyful { background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%); color: white; }
+        .emotion-btn.sad { background: linear-gradient(135deg, #a8caba 0%, #5d4e75 100%); color: white; }
+        .emotion-btn.excited { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: #721c24; }
+        .emotion-btn.frustrated { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); color: white; }
+        .emotion-btn.worried { background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); color: white; }
+        .emotion-btn.calm { background: linear-gradient(135deg, #a8e6cf 0%, #81c784 100%); color: #2e7d32; }
+
+        .emotion-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .emotional-response {
+            background: rgba(255,255,255,0.8);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #ffc1cc;
+        }
+
+        .emotion-analysis {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .emotion-metric {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+
+        .emotion-metric strong {
+            display: block;
+            font-size: 0.9em;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+
+        .emotion-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #721c24;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .demo-card, .speech-controls {
+                padding: 25px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .speech-toggle {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ Orpheus FP8 Emotional AI</h1>
+            <p>Real-time emotional intelligence with FP8 speed-optimized voice synthesis</p>
+        </div>
+
+        <!-- Speech Recognition Controls -->
+        <div class="demo-card">
+            <div class="speech-controls">
+                <div class="speech-status">
+                    <div class="status-indicator" id="statusIndicator"></div>
+                    <span id="statusText">Click "Start Listening" to begin voice conversation</span>
+                </div>
+                
+                <div class="audio-meter">
+                    <div class="audio-level" id="audioLevel"></div>
+                </div>
+                
+                <div class="speech-toggle">
+                    <button class="speech-btn primary" id="startListeningBtn" onclick="startListening()">
+                        🎧 Start Listening
+                    </button>
+                    <button class="speech-btn secondary" id="stopListeningBtn" onclick="stopListening()" disabled>
+                        ⏹️ Stop Listening
+                    </button>
+                    <button class="speech-btn danger" id="emergencyStopBtn" onclick="emergencyStop()">
+                        🚨 Emergency Stop
+                    </button>
+                </div>
+            </div>
+
+            <!-- Live Transcript -->
+            <div class="live-transcript">
+                <div class="transcript-text" id="liveTranscript">Your speech will appear here in real-time...</div>
+            </div>
+
+            <!-- ChatGPT Status Indicator -->
+            <div id="chatgptStatus" style="display: none; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 8px 15px; border-radius: 20px; text-align: center; margin: 10px 0; font-size: 12px; font-weight: bold;">
+                🧠 ChatGPT is thinking...
+            </div>
+
+            <!-- Conversation History -->
+            <div class="conversation-history" id="conversationHistory">
+                <h3>💬 Conversation History</h3>
+                <div id="conversationItems"></div>
+            </div>
+        </div>
+
+        <!-- Settings -->
+        <div class="demo-card">
+            <div class="settings">
+                <h3>⚙️ Voice Settings</h3>
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <label for="confidenceThreshold">Confidence Threshold:</label>
+                        <input type="range" id="confidenceThreshold" min="0.1" max="1.0" step="0.1" value="0.7">
+                        <span id="confidenceValue">0.7</span>
+                    </div>
+                    <div class="setting-item">
+                        <label for="silenceThreshold">Silence Detection (ms):</label>
+                        <input type="range" id="silenceThreshold" min="500" max="3000" step="100" value="1500">
+                        <span id="silenceValue">1500</span>
+                    </div>
+                    <div class="setting-item">
+                        <label for="autoRespond">Auto-respond to speech:</label>
+                        <input type="checkbox" id="autoRespond" checked>
+                    </div>
+                    <div class="setting-item">
+                        <label for="muteWhileSpeaking">Mute mic while AI speaks:</label>
+                        <input type="checkbox" id="muteWhileSpeaking" checked>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Original TTS Interface -->
+        <div class="demo-card">
+            <h3>✍️ Manual Text Input</h3>
+            <form id="ttsForm">
+                <div class="form-group">
+                    <label for="textInput">Enter your text:</label>
+                    <textarea 
+                        id="textInput" 
+                        class="text-input" 
+                        placeholder="Type or paste your text here, or use voice input above..."
+                        maxlength="1000"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Choose a voice:</label>
+                    <div id="voiceGrid" class="voice-grid">
+                        <!-- Voice cards will be loaded here -->
+                    </div>
+                </div>
+
+                <button type="submit" class="generate-btn" id="generateBtn">
+                    🗣️ Generate Speech
+                </button>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Generating your speech...</p>
+            </div>
+
+            <div class="error" id="error"></div>
+
+            <div class="result" id="result">
+                <h3>🎵 Generated Audio:</h3>
+                <audio controls class="audio-player" id="audioPlayer">
+                    Your browser does not support the audio element.
+                </audio>
+                <div class="stats" id="stats"></div>
+            </div>
+        </div>
+
+        <!-- Emotional Testing Section -->
+        <div class="emotional-testing">
+            <h3>🎭 Test Emotional AI Responses</h3>
+            <p>Click any button to test how the AI detects and responds to different emotions</p>
+            <div class="emotion-buttons">
+                <button onclick="testEmotion('joyful')" class="emotion-btn joy">😊 Joy</button>
+                <button onclick="testEmotion('sad')" class="emotion-btn sad">😢 Sad</button>
+                <button onclick="testEmotion('excited')" class="emotion-btn excited">🚀 Excited</button>
+                <button onclick="testEmotion('frustrated')" class="emotion-btn frustrated">😤 Frustrated</button>
+                <button onclick="testEmotion('worried')" class="emotion-btn worried">😰 Worried</button>
+                <button onclick="testEmotion('calm')" class="emotion-btn calm">😌 Calm</button>
+            </div>
+        </div>
+
+        <!-- FP8 SPEED OPTIMIZED Voices -->
+        <div class="voice-section fp8">
+            <h3>⚡ FP8 SPEED OPTIMIZED - 2200 max tokens - no truncation!</h3>
+            <div class="voice-grid">
+                <div class="voice-card" onclick="selectVoice('orpheus_leah')">
+                    <div class="voice-header">
+                        <span class="voice-name">Leah</span>
+                        <span class="voice-badge fp8">FP8</span>
+                    </div>
+                    <p>Warm female voice with expressive intonation</p>
+                </div>
+                <div class="voice-card" onclick="selectVoice('orpheus_jess')">
+                    <div class="voice-header">
+                        <span class="voice-name">Jess</span>
+                        <span class="voice-badge fp8">FP8</span>
+                    </div>
+                    <p>Youthful female voice with dynamic delivery</p>
+                </div>
+                <div class="voice-card" onclick="selectVoice('orpheus_dan')">
+                    <div class="voice-header">
+                        <span class="voice-name">Dan</span>
+                        <span class="voice-badge fp8">FP8</span>
+                    </div>
+                    <p>Casual male voice with conversational style</p>
+                </div>
+                <div class="voice-card" onclick="selectVoice('orpheus_zac')">
+                    <div class="voice-header">
+                        <span class="voice-name">Zac</span>
+                        <span class="voice-badge fp8">FP8</span>
+                    </div>
+                    <p>Young male voice with enthusiastic energy</p>
+                </div>
+                <div class="voice-card" onclick="selectVoice('orpheus_zoe')">
+                    <div class="voice-header">
+                        <span class="voice-name">Zoe</span>
+                        <span class="voice-badge fp8">FP8</span>
+                    </div>
+                    <p>Gentle female voice with calming presence</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state management
+        let speechRecognition = null;
+        let audioContext = null;
+        let microphone = null;
+        let audioAnalyser = null;
+        let isListening = false;
+        let isSpeaking = false;
+        let isProcessingResponse = false;
+        let selectedVoice = 'orpheus_tara';  // Default to Orpheus voice
+        let voices = [];
+        let conversationHistory = [];
+        let audioLevelInterval = null;
+        let silenceTimer = null;
+        let lastSpeechTime = 0;
+        
+        // Settings
+        let settings = {
+            confidenceThreshold: 0.7,
+            silenceThreshold: 1500,
+            autoRespond: true,
+            muteWhileSpeaking: true
+        };
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadVoices();
+            initializeSettings();
+            checkBrowserCompatibility();
+        });
+
+        // Browser compatibility check
+        function checkBrowserCompatibility() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                showError('Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari.');
+                document.getElementById('startListeningBtn').disabled = true;
+                return false;
+            }
+            
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                showError('Microphone access is not supported in this browser.');
+                document.getElementById('startListeningBtn').disabled = true;
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Initialize speech recognition
+        function initializeSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            speechRecognition = new SpeechRecognition();
+            
+            // Configure speech recognition
+            speechRecognition.continuous = true;
+            speechRecognition.interimResults = true;
+            speechRecognition.lang = 'en-US';
+            speechRecognition.maxAlternatives = 1;
+            
+            // Event handlers
+            speechRecognition.onstart = function() {
+                console.log('🎤 Speech recognition started');
+                updateStatus('listening', 'Listening for speech...');
+            };
+            
+            speechRecognition.onresult = function(event) {
+                let transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        transcript += event.results[i][0].transcript;
+                    } else {
+                        transcript += event.results[i][0].transcript;
+                    }
+                }
+                
+                document.getElementById('liveTranscript').textContent = transcript;
+                
+                // Auto-send to ChatGPT when speech is final and not empty
+                if (event.results[event.results.length-1].isFinal && transcript.trim().length > 0) {
+                    console.log('Final transcript:', transcript);
+                    
+                    // Update status
+                    updateStatus('processing', '🧠 ChatGPT is thinking...');
+                    
+                    // Add user message to conversation
+                    addToConversation('user', transcript.trim());
+                    
+                    // Send to ChatGPT conversation endpoint
+                    processUserSpeech(transcript.trim());
+                }
+            };
+            
+            speechRecognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                if (event.error === 'no-speech') {
+                    // This is normal, don't show error
+                    return;
+                }
+                if (event.error === 'network') {
+                    showError('Network error during speech recognition. Please check your connection.');
+                } else {
+                    showError('Speech recognition error: ' + event.error);
+                }
+            };
+            
+            speechRecognition.onend = function() {
+                console.log('🎤 Speech recognition ended');
+                if (isListening && !isSpeaking) {
+                    // Restart recognition if we're still supposed to be listening
+                    setTimeout(() => {
+                        if (isListening && !isSpeaking) {
+                            speechRecognition.start();
+                        }
+                    }, 100);
+                }
+            };
+        }
+
+        // Initialize audio context for volume monitoring
+        async function initializeAudioContext() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    } 
+                });
+                
+                microphone = audioContext.createMediaStreamSource(stream);
+                audioAnalyser = audioContext.createAnalyser();
+                audioAnalyser.fftSize = 256;
+                
+                microphone.connect(audioAnalyser);
+                
+                return true;
+            } catch (error) {
+                console.error('Error initializing audio context:', error);
+                showError('Could not access microphone. Please allow microphone access and try again.');
+                return false;
+            }
+        }
+
+        // Start listening
+        async function startListening() {
+            if (!checkBrowserCompatibility()) return;
+            
+            try {
+                // Initialize audio context first
+                if (!audioContext) {
+                    const audioInitialized = await initializeAudioContext();
+                    if (!audioInitialized) return;
+                }
+                
+                // Initialize speech recognition
+                if (!speechRecognition) {
+                    initializeSpeechRecognition();
+                }
+                
+                isListening = true;
+                speechRecognition.start();
+                
+                // Start audio level monitoring
+                startAudioLevelMonitoring();
+                
+                // Update UI
+                document.getElementById('startListeningBtn').disabled = true;
+                document.getElementById('stopListeningBtn').disabled = false;
+                updateStatus('listening', 'Listening for speech...');
+                
+                console.log('🎧 Started listening for speech');
+                
+            } catch (error) {
+                console.error('Error starting speech recognition:', error);
+                showError('Could not start speech recognition: ' + error.message);
+                isListening = false;
+            }
+        }
+
+        // Stop listening
+        function stopListening() {
+            isListening = false;
+            
+            if (speechRecognition) {
+                speechRecognition.stop();
+            }
+            
+            stopAudioLevelMonitoring();
+            
+            // Update UI
+            document.getElementById('startListeningBtn').disabled = false;
+            document.getElementById('stopListeningBtn').disabled = true;
+            updateStatus('idle', 'Speech recognition stopped');
+            
+            console.log('🛑 Stopped listening for speech');
+        }
+
+        // Emergency stop - stops all audio and speech recognition
+        function emergencyStop() {
+            console.log('🚨 Emergency stop triggered');
+            
+            // Stop listening
+            isListening = false;
+            isSpeaking = false;
+            isProcessingResponse = false;
+            
+            // Stop speech recognition
+            if (speechRecognition) {
+                speechRecognition.stop();
+            }
+            
+            // Stop all audio
+            const audioPlayer = document.getElementById('audioPlayer');
+            if (audioPlayer) {
+                audioPlayer.pause();
+                audioPlayer.currentTime = 0;
+            }
+            
+            // Stop audio monitoring
+            stopAudioLevelMonitoring();
+            
+            // Clear any pending timers
+            if (silenceTimer) {
+                clearTimeout(silenceTimer);
+                silenceTimer = null;
+            }
+            
+            // Reset UI
+            document.getElementById('startListeningBtn').disabled = false;
+            document.getElementById('stopListeningBtn').disabled = true;
+            updateStatus('idle', 'Emergency stop - all audio stopped');
+            
+            hideLoading();
+        }
+
+        // Handle speech recognition results
+        function handleSpeechResult(event) {
+            let finalTranscript = '';
+            let interimTranscript = '';
+            
+            // Process all results
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const result = event.results[i];
+                const transcript = result[0].transcript;
+                const confidence = result[0].confidence;
+                
+                if (result.isFinal) {
+                    if (confidence >= settings.confidenceThreshold) {
+                        finalTranscript += transcript;
+                        lastSpeechTime = Date.now();
+                    }
+                } else {
+                    interimTranscript += transcript;
+                }
+            }
+            
+            // Update live transcript display
+            updateLiveTranscript(finalTranscript, interimTranscript);
+            
+            // Process final transcript
+            if (finalTranscript.trim()) {
+                processFinalTranscript(finalTranscript.trim());
+            }
+            
+            // Handle silence detection
+            handleSilenceDetection();
+        }
+
+        // Process final transcript
+        function processFinalTranscript(transcript) {
+            console.log('📝 Final transcript:', transcript);
+            
+            // Add to conversation history
+            addToConversation('user', transcript);
+            
+            // Auto-respond if enabled
+            if (settings.autoRespond && !isProcessingResponse) {
+                processUserSpeech(transcript);
+            }
+        }
+
+        // Process user speech and generate AI response
+        async function processUserSpeech(userText) {
+            if (!userText || isProcessingResponse) return;
+            
+            isProcessingResponse = true;
+            console.log('🎯 Processing user speech:', userText);
+            
+            try {
+                // Show ChatGPT thinking indicator
+                const statusDiv = document.getElementById('chatgptStatus');
+                statusDiv.style.display = 'block';
+                statusDiv.innerHTML = '🧠 ChatGPT is thinking...';
+                
+                // Add user message to conversation
+                addToConversation('user', userText);
+                
+                // Call ChatGPT conversation API
+                const response = await fetch('/conversation/respond', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: userText,
+                        voice: selectedVoice,
+                        session_id: 'speech_session'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Update status to show AI response generated
+                    statusDiv.innerHTML = '🎭 Generating AI voice response...';
+                    
+                    // Add AI response to conversation
+                    addToConversation('ai', data.ai_response);
+                    
+                    // Play the AI audio response
+                    if (data.audio_base64) {
+                        await playAudioResponse(data.audio_base64);
+                    }
+                    
+                    // Hide status indicator
+                    setTimeout(() => {
+                        statusDiv.style.display = 'none';
+                    }, 1000);
+                    
+                    console.log('✅ ChatGPT conversation completed:', data.ai_response);
+                } else {
+                    throw new Error(data.error || 'Conversation API failed');
+                }
+                
+            } catch (error) {
+                console.error('❌ ChatGPT conversation error:', error);
+                
+                // Fallback to simple response
+                const fallbackResponse = generateFallbackResponse(userText);
+                addToConversation('ai', fallbackResponse);
+                
+                // Update status to show fallback
+                const statusDiv = document.getElementById('chatgptStatus');
+                statusDiv.style.background = 'linear-gradient(135deg, #ffc107 0%, #e67e22 100%)';
+                statusDiv.innerHTML = '⚠️ Using fallback response...';
+                
+                // Generate TTS for fallback
+                try {
+                    const ttsResponse = await fetch('/generate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            text: fallbackResponse,
+                            voice: selectedVoice
+                        })
+                    });
+                    
+                    const ttsData = await ttsResponse.json();
+                    if (ttsData.success && ttsData.audio_base64) {
+                        await playAudioResponse(ttsData.audio_base64);
+                    }
+                } catch (ttsError) {
+                    console.error('TTS fallback error:', ttsError);
+                }
+                
+                // Hide status indicator
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                    statusDiv.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                }, 2000);
+            } finally {
+                isProcessingResponse = false;
+            }
+        }
+
+        // Generate simple AI responses (fallback when ChatGPT unavailable)
+        function generateFallbackResponse(userText) {
+            const responses = [
+                "I understand. Could you tell me more about that?",
+                "That's interesting! What do you think about it?",
+                "I see what you mean. How does that make you feel?",
+                "That sounds fascinating. Can you elaborate on that?",
+                "I appreciate you sharing that with me. What's your next thought?",
+                "That's a great point. What else would you like to discuss?",
+                "I find that really interesting! Tell me more.",
+                "Thanks for sharing that with me. How can I help you further?",
+                "That's worth considering. What's your next question?",
+                "Good observation! What else is important to you?"
+            ];
+            
+            // Simple response selection based on keywords
+            const lowerText = userText.toLowerCase();
+            
+            if (lowerText.includes('hello') || lowerText.includes('hi')) {
+                return "[Fallback] Hello! I'm here to chat, though ChatGPT isn't available right now. How can I help?";
+            } else if (lowerText.includes('thank')) {
+                return "[Fallback] You're welcome! I'm doing my best to help while ChatGPT is unavailable.";
+            } else if (lowerText.includes('question') || lowerText.includes('help')) {
+                return "[Fallback] I'd like to help! Though ChatGPT isn't available, I can still try to assist you.";
+            } else if (lowerText.includes('goodbye') || lowerText.includes('bye')) {
+                return "[Fallback] Goodbye! Take care, and thanks for your patience with the system.";
+            } else {
+                return "[Fallback] " + responses[Math.floor(Math.random() * responses.length)];
+            }
+        }
+
+        // Play audio response with loop prevention
+        async function playAudioResponse(audioBase64) {
+            return new Promise((resolve, reject) => {
+                try {
+                    isSpeaking = true;
+                    updateStatus('speaking', 'AI is speaking...');
+                    
+                    const audio = new Audio(`data:audio/wav;base64,${audioBase64}`);
+                    
+                    audio.onplay = () => {
+                        console.log('🔊 AI started speaking');
+                        // Further mute speech recognition while playing
+                        if (speechRecognition && isListening) {
+                            speechRecognition.stop();
+                        }
+                    };
+                    
+                    audio.onended = () => {
+                        console.log('🔇 AI finished speaking');
+                        isSpeaking = false;
+                        
+                        // Resume speech recognition if we were listening
+                        if (isListening) {
+                            setTimeout(() => {
+                                if (isListening && !isSpeaking && speechRecognition) {
+                                    speechRecognition.start();
+                                }
+                            }, 500); // Small delay to prevent pickup of audio tail
+                        }
+                        
+                        resolve();
+                    };
+                    
+                    audio.onerror = (error) => {
+                        console.error('Audio playback error:', error);
+                        isSpeaking = false;
+                        reject(error);
+                    };
+                    
+                    // Set volume and play
+                    audio.volume = 0.8;
+                    audio.play();
+                    
+                } catch (error) {
+                    isSpeaking = false;
+                    reject(error);
+                }
+            });
+        }
+
+        // Mute/unmute microphone
+        function muteMicrophone(mute) {
+            if (microphone && microphone.mediaStream) {
+                microphone.mediaStream.getAudioTracks().forEach(track => {
+                    track.enabled = !mute;
+                });
+                console.log(mute ? '🔇 Microphone muted' : '🎤 Microphone unmuted');
+            }
+        }
+
+        // Handle silence detection
+        function handleSilenceDetection() {
+            if (silenceTimer) {
+                clearTimeout(silenceTimer);
+            }
+            
+            silenceTimer = setTimeout(() => {
+                const timeSinceLastSpeech = Date.now() - lastSpeechTime;
+                if (timeSinceLastSpeech >= settings.silenceThreshold) {
+                    console.log('🤫 Silence detected, clearing transcript');
+                    document.getElementById('liveTranscript').innerHTML = 'Listening...';
+                }
+            }, settings.silenceThreshold);
+        }
+
+        // Update live transcript display
+        function updateLiveTranscript(finalText, interimText) {
+            const transcriptElement = document.getElementById('liveTranscript');
+            
+            let displayText = '';
+            if (finalText) {
+                displayText += `<span class="final">${finalText}</span>`;
+            }
+            if (interimText) {
+                displayText += ` <span class="interim">${interimText}</span>`;
+            }
+            
+            transcriptElement.innerHTML = displayText || 'Listening...';
+            
+            // Auto-scroll if needed
+            transcriptElement.scrollTop = transcriptElement.scrollHeight;
+        }
+
+        // Add message to conversation history
+        function addToConversation(sender, text) {
+            const conversation = {
+                sender: sender,
+                text: text,
+                timestamp: new Date().toLocaleTimeString()
+            };
+            
+            conversationHistory.unshift(conversation);
+            
+            // Keep only last 10 messages
+            if (conversationHistory.length > 10) {
+                conversationHistory = conversationHistory.slice(0, 10);
+            }
+            
+            updateConversationDisplay();
+        }
+
+        // Update conversation history display
+        function updateConversationDisplay() {
+            const container = document.getElementById('conversationItems');
+            container.innerHTML = '';
+            
+            conversationHistory.forEach(item => {
+                const div = document.createElement('div');
+                div.className = `conversation-item ${item.sender}`;
+                div.innerHTML = `
+                    <div class="conversation-label">${item.sender === 'user' ? '👤 You' : '🤖 AI'}</div>
+                    <div class="conversation-text">${item.text}</div>
+                    <div class="conversation-time">${item.timestamp}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Start audio level monitoring
+        function startAudioLevelMonitoring() {
+            if (!audioAnalyser) return;
+            
+            const dataArray = new Uint8Array(audioAnalyser.frequencyBinCount);
+            
+            audioLevelInterval = setInterval(() => {
+                audioAnalyser.getByteFrequencyData(dataArray);
+                
+                // Calculate average volume
+                let sum = 0;
+                for (let i = 0; i < dataArray.length; i++) {
+                    sum += dataArray[i];
+                }
+                const average = sum / dataArray.length;
+                const percentage = (average / 255) * 100;
+                
+                // Update visual indicator
+                document.getElementById('audioLevel').style.width = percentage + '%';
+                
+            }, 100);
+        }
+
+        // Stop audio level monitoring
+        function stopAudioLevelMonitoring() {
+            if (audioLevelInterval) {
+                clearInterval(audioLevelInterval);
+                audioLevelInterval = null;
+            }
+            document.getElementById('audioLevel').style.width = '0%';
+        }
+
+        // Update status indicator
+        function updateStatus(status, message) {
+            const indicator = document.getElementById('statusIndicator');
+            const text = document.getElementById('statusText');
+            
+            // Remove all status classes
+            indicator.className = 'status-indicator';
+            
+            // Add current status class
+            if (status !== 'idle') {
+                indicator.classList.add(status);
+            }
+            
+            text.textContent = message;
+        }
+
+        // Initialize settings
+        function initializeSettings() {
+            // Confidence threshold
+            const confidenceSlider = document.getElementById('confidenceThreshold');
+            const confidenceValue = document.getElementById('confidenceValue');
+            confidenceSlider.addEventListener('input', function() {
+                settings.confidenceThreshold = parseFloat(this.value);
+                confidenceValue.textContent = this.value;
+            });
+            
+            // Silence threshold
+            const silenceSlider = document.getElementById('silenceThreshold');
+            const silenceValue = document.getElementById('silenceValue');
+            silenceSlider.addEventListener('input', function() {
+                settings.silenceThreshold = parseInt(this.value);
+                silenceValue.textContent = this.value;
+            });
+            
+            // Auto-respond checkbox
+            document.getElementById('autoRespond').addEventListener('change', function() {
+                settings.autoRespond = this.checked;
+            });
+            
+            // Mute while speaking checkbox
+            document.getElementById('muteWhileSpeaking').addEventListener('change', function() {
+                settings.muteWhileSpeaking = this.checked;
+            });
+        }
+
+        // Original TTS functionality
+        let originalVoices = [];
+        let voiceConfigs = {};
+
+        async function loadVoices() {
+            try {
+                const response = await fetch('/voices');
+                const data = await response.json();
+                voiceConfigs = data.voices;
+                originalVoices = Object.entries(data.voices).map(([id, config]) => ({
+                    id: id,
+                    name: id.charAt(0).toUpperCase() + id.slice(1),
+                    description: config.description,
+                    type: config.type,
+                    precision: config.precision || 'standard',
+                    maxTokens: config.max_tokens || 1500
+                }));
+                renderVoices();
+            } catch (error) {
+                console.error('Error loading voices:', error);
+            }
+        }
+
+        // Render voice selection cards with clear FP8/FP16 markings
+        function renderVoices() {
+            const voiceGrid = document.getElementById('voiceGrid');
+            voiceGrid.innerHTML = '';
+
+            // Separate voices by type and precision
+            const orpheusFP16 = originalVoices.filter(voice => voice.id.startsWith('orpheus_') && voice.precision === 'fp16');
+            const orpheusFP8 = originalVoices.filter(voice => voice.id.startsWith('orpheus_') && voice.precision === 'fp8');
+            const systemVoices = originalVoices.filter(voice => voice.id.startsWith('system_'));
+
+            // Render FP16 Orpheus voices (Premium Quality)
+            if (orpheusFP16.length > 0) {
+                const fp16Header = document.createElement('div');
+                fp16Header.style.gridColumn = '1 / -1';
+                fp16Header.innerHTML = `
+                    <h4 style="color: #28a745; margin: 10px 0; text-align: center; padding: 12px; background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); border-radius: 10px; border: 2px solid #28a745;">
+                        🎭 Orpheus AI - FP16 Premium Quality (2-4s generation)
+                        <div style="font-size: 12px; font-weight: normal; margin-top: 5px;">Maximum fidelity, natural emotion, best for important content</div>
+                    </h4>
+                `;
+                voiceGrid.appendChild(fp16Header);
+
+                orpheusFP16.forEach(voice => {
+                    const voiceCard = document.createElement('div');
+                    voiceCard.className = `voice-card ${voice.id === selectedVoice ? 'selected' : ''}`;
+                    voiceCard.style.border = '2px solid #28a745';
+                    voiceCard.style.background = voice.id === selectedVoice ? '#d4edda' : '#f8fff9';
+                    voiceCard.onclick = () => selectVoice(voice.id);
+                    voiceCard.innerHTML = `
+                        <div class="voice-name" style="color: #28a745;">${voice.name.replace('Orpheus_', '')}</div>
+                        <div class="voice-desc">${voice.description}</div>
+                        <div style="font-size: 11px; color: #28a745; margin-top: 8px; padding: 4px 8px; background: #28a745; color: white; border-radius: 12px; font-weight: bold;">
+                            ⭐ FP16 PREMIUM - ${voice.maxTokens} tokens
+                        </div>
+                    `;
+                    voiceGrid.appendChild(voiceCard);
+                });
+            }
+
+            // Render FP8 Orpheus voices (Speed Optimized)
+            if (orpheusFP8.length > 0) {
+                const fp8Header = document.createElement('div');
+                fp8Header.style.gridColumn = '1 / -1';
+                fp8Header.innerHTML = `
+                    <h4 style="color: #ffc107; margin: 15px 0 10px 0; text-align: center; padding: 12px; background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border-radius: 10px; border: 2px solid #ffc107;">
+                        ⚡ Orpheus AI - FP8 Speed Optimized (1-3s generation)
+                        <div style="font-size: 12px; font-weight: normal; margin-top: 5px;">Fast generation, excellent quality, 2200 max tokens - no truncation!</div>
+                    </h4>
+                `;
+                voiceGrid.appendChild(fp8Header);
+
+                orpheusFP8.forEach(voice => {
+                    const voiceCard = document.createElement('div');
+                    voiceCard.className = `voice-card ${voice.id === selectedVoice ? 'selected' : ''}`;
+                    voiceCard.style.border = '2px solid #ffc107';
+                    voiceCard.style.background = voice.id === selectedVoice ? '#fff3cd' : '#fffef7';
+                    voiceCard.onclick = () => selectVoice(voice.id);
+                    voiceCard.innerHTML = `
+                        <div class="voice-name" style="color: #e67e22;">${voice.name.replace('Orpheus_', '')}</div>
+                        <div class="voice-desc">${voice.description}</div>
+                        <div style="font-size: 11px; color: white; margin-top: 8px; padding: 4px 8px; background: #ffc107; border-radius: 12px; font-weight: bold;">
+                            ⚡ FP8 SPEED - ${voice.maxTokens} tokens
+                        </div>
+                    `;
+                    voiceGrid.appendChild(voiceCard);
+                });
+            }
+
+            // Render System voices (Local & Fast)
+            if (systemVoices.length > 0) {
+                const systemHeader = document.createElement('div');
+                systemHeader.style.gridColumn = '1 / -1';
+                systemHeader.innerHTML = `
+                    <h4 style="color: #6c757d; margin: 15px 0 10px 0; text-align: center; padding: 12px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 10px; border: 2px solid #6c757d;">
+                        🖥️ System Voices - Local Processing (Instant)
+                        <div style="font-size: 12px; font-weight: normal; margin-top: 5px;">Ultra-fast local generation, no API limits</div>
+                    </h4>
+                `;
+                voiceGrid.appendChild(systemHeader);
+
+                systemVoices.forEach(voice => {
+                    const voiceCard = document.createElement('div');
+                    voiceCard.className = `voice-card ${voice.id === selectedVoice ? 'selected' : ''}`;
+                    voiceCard.style.border = '2px solid #6c757d';
+                    voiceCard.style.background = voice.id === selectedVoice ? '#f8f9fa' : '#ffffff';
+                    voiceCard.onclick = () => selectVoice(voice.id);
+                    voiceCard.innerHTML = `
+                        <div class="voice-name" style="color: #495057;">${voice.name.replace('System_', '')}</div>
+                        <div class="voice-desc">${voice.description}</div>
+                        <div style="font-size: 11px; color: white; margin-top: 8px; padding: 4px 8px; background: #6c757d; border-radius: 12px; font-weight: bold;">
+                            🖥️ LOCAL SYSTEM
+                        </div>
+                    `;
+                    voiceGrid.appendChild(voiceCard);
+                });
+            }
+        }
+
+        function selectVoice(voiceId) {
+            selectedVoice = voiceId;
+            renderVoices();
+        }
+
+        // Handle manual TTS form submission
+        document.getElementById('ttsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const text = document.getElementById('textInput').value.trim();
+            if (!text) {
+                showError('Please enter some text to convert to speech.');
+                return;
+            }
+
+            showLoading(true);
+            hideError();
+            hideResult();
+
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        voice: selectedVoice
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showResult(data);
+                    
+                    // Add to conversation if listening is active
+                    if (isListening) {
+                        addToConversation('ai', text);
+                    }
+                } else {
+                    showError(data.error || 'Unknown error occurred');
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        // Utility functions
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            document.getElementById('generateBtn').disabled = show;
+        }
+
+        function showResult(data) {
+            const audioPlayer = document.getElementById('audioPlayer');
+            const stats = document.getElementById('stats');
+            
+            if (data.audio_base64) {
+                audioPlayer.src = `data:audio/wav;base64,${data.audio_base64}`;
+            } else if (data.audio_url) {
+                audioPlayer.src = data.audio_url;
+            }
+            
+            stats.innerHTML = `
+                <span>Duration: ${data.metrics?.audio_duration || data.duration}s</span>
+                <span>Generation Time: ${data.metrics?.generation_time || data.generation_time}s</span>
+                <span>Voice: ${selectedVoice}</span>
+            `;
+            
+            document.getElementById('result').style.display = 'block';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            console.error('Error:', message);
+        }
+
+        function hideError() {
+            document.getElementById('error').style.display = 'none';
+        }
+
+        function hideResult() {
+            document.getElementById('result').style.display = 'none';
+        }
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', function() {
+            emergencyStop();
+        });
+
+        // Emotional Testing Functions
+        async function testEmotion(emotionType) {
+            const emotionalTexts = {
+                joyful: "I just got promoted at work! I'm so excited and happy about this amazing opportunity!",
+                sad: "I'm feeling really down today. Everything seems to be going wrong and I'm heartbroken.",
+                excited: "This is absolutely incredible! I can't believe how wonderful this technology is! I'm thrilled!",
+                frustrated: "This is so annoying! Nothing is working properly and I'm really fed up with all these problems!",
+                worried: "I'm really concerned about the future. What if everything goes wrong? I'm feeling anxious.",
+                calm: "I'm feeling peaceful and relaxed today. Everything seems to be going smoothly."
+            };
+
+            const text = emotionalTexts[emotionType];
+            document.getElementById('emotionalResponse').textContent = 'Processing emotional response...';
+
+            try {
+                const response = await fetch('/conversation/respond', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        voice: selectedVoice,
+                        session_id: 'emotional_test'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('emotionalResponse').textContent = data.ai_response;
+                    
+                    // Update emotional analysis metrics
+                    const analysis = data.emotional_analysis || {};
+                    document.getElementById('joyScore').textContent = 
+                        analysis.detected_emotion === 'joyful' ? (analysis.emotion_intensity || 0).toFixed(2) : '0';
+                    document.getElementById('sadScore').textContent = 
+                        analysis.detected_emotion === 'sad' ? (analysis.emotion_intensity || 0).toFixed(2) : '0';
+                    document.getElementById('excitedScore').textContent = 
+                        analysis.detected_emotion === 'excited' ? (analysis.emotion_intensity || 0).toFixed(2) : '0';
+                    document.getElementById('frustratedScore').textContent = 
+                        analysis.detected_emotion === 'frustrated' ? (analysis.emotion_intensity || 0).toFixed(2) : '0';
+                    document.getElementById('worriedScore').textContent = 
+                        analysis.detected_emotion === 'worried' ? (analysis.emotion_intensity || 0).toFixed(2) : '0';
+                    document.getElementById('calmScore').textContent = 
+                        analysis.detected_emotion === 'calm' ? (analysis.emotion_intensity || 0).toFixed(2) : '0';
+
+                    // Play the emotional audio if available
+                    if (data.audio_file) {
+                        playAudioFromFile(data.audio_file);
+                    }
+                } else {
+                    document.getElementById('emotionalResponse').textContent = 
+                        'Error: ' + (data.error || 'Unknown error occurred');
+                }
+            } catch (error) {
+                console.error('Emotional testing error:', error);
+                document.getElementById('emotionalResponse').textContent = 
+                    'Error: Failed to test emotional response';
+            }
+        }
+
+        async function playAudioFromFile(audioFile) {
+            // For now, just log that audio would be played
+            // In production, you would implement audio playback
+            console.log('Playing audio file:', audioFile);
+        }
+
+        // Send text to ChatGPT conversation and get audio response
+        async function sendToConversation(text) {
+            try {
+                const sessionId = 'web_chat_' + Date.now();
+                
+                const response = await fetch('/conversation/respond', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        voice: selectedVoice,
+                        session_id: sessionId
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Add AI response to conversation
+                    addToConversation('ai', data.ai_response);
+                    
+                    // Play the audio response
+                    if (data.audio_base64) {
+                        await playAudioResponse(data.audio_base64);
+                    }
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+                
+            } catch (error) {
+                console.error('Conversation error:', error);
+                addToConversation('ai', `[Error] Failed to get AI response: ${error.message}`);
+                updateStatus('idle', '❌ Error - Try again');
+            }
+        }
+    </script>
+</body>
+</html> 

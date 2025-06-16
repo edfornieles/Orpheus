@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Orpheus TTS ULTRA-FAST</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .target-latency {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .input-section {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        
+        #textInput {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .char-counter {
+            text-align: right;
+            margin-top: 5px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .voice-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .voice-option {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .voice-option:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .voice-option.selected {
+            border-color: #feca57;
+            background: rgba(254, 202, 87, 0.3);
+        }
+        
+        .instant-phrases {
+            margin-bottom: 25px;
+        }
+        
+        .instant-phrases h3 {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .instant-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        
+        .instant-btn {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 20px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .instant-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .generate-btn {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            border: none;
+            border-radius: 50px;
+            padding: 15px 40px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .generate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .performance-monitor {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .performance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .performance-item {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .performance-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .performance-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-ultra-fast { background: #00ff00; }
+        .status-fast { background: #ffff00; }
+        .status-slow { background: #ff0000; }
+        
+        .audio-player {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        audio {
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .optimization-info {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+        
+        .optimization-info h4 {
+            margin-bottom: 10px;
+            color: #feca57;
+        }
+        
+        .optimization-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .optimization-list li {
+            padding: 5px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .optimization-list li:before {
+            content: "⚡";
+            position: absolute;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Orpheus TTS ULTRA-FAST</h1>
+            <div class="target-latency">🎯 TARGET: 2-5s LATENCY (FIXED)</div>
+        </div>
+        
+        <div class="input-section">
+            <div class="input-group">
+                <label for="textInput">💬 Enter text (optimized for fast generation):</label>
+                <textarea id="textInput" placeholder="Type a phrase for fast generation - now with audible output!"></textarea>
+                <div class="char-counter">
+                    <span id="charCount">0</span>/100 chars (smart truncation)
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label>🎤 Select Voice (cached for speed):</label>
+                <div class="voice-selector" id="voiceSelector">
+                    <!-- Voices will be loaded here -->
+                </div>
+            </div>
+            
+            <div class="instant-phrases">
+                <h3>⚡ INSTANT PHRASES (Click for immediate generation)</h3>
+                <div class="instant-buttons">
+                    <button class="instant-btn" onclick="generateInstant('Hi!')">Hi!</button>
+                    <button class="instant-btn" onclick="generateInstant('Hello!')">Hello!</button>
+                    <button class="instant-btn" onclick="generateInstant('Yes!')">Yes!</button>
+                    <button class="instant-btn" onclick="generateInstant('No way!')">No way!</button>
+                    <button class="instant-btn" onclick="generateInstant('Awesome!')">Awesome!</button>
+                    <button class="instant-btn" onclick="generateInstant('Thanks!')">Thanks!</button>
+                </div>
+            </div>
+            
+            <button class="generate-btn" onclick="generateSpeech()" id="generateBtn">
+                🚀 GENERATE ULTRA-FAST SPEECH
+            </button>
+        </div>
+        
+        <div class="performance-monitor">
+            <h3 style="text-align: center; margin-bottom: 20px;">📊 REAL-TIME PERFORMANCE MONITOR</h3>
+            <div class="performance-grid">
+                <div class="performance-item">
+                    <div class="performance-value" id="lastLatency">-</div>
+                    <div class="performance-label">Last Latency (s)</div>
+                </div>
+                <div class="performance-item">
+                    <div class="performance-value" id="speedRatio">-</div>
+                    <div class="performance-label">Speed Ratio</div>
+                </div>
+                <div class="performance-item">
+                    <div class="performance-value" id="chunksUsed">-</div>
+                    <div class="performance-label">Chunks Generated</div>
+                </div>
+                <div class="performance-item">
+                    <div class="performance-value" id="statusIndicator">
+                        <span class="status-indicator status-ultra-fast"></span>Ready
+                    </div>
+                    <div class="performance-label">System Status</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="audio-player" id="audioPlayer" style="display: none;">
+            <h3>🔊 Generated Audio</h3>
+            <audio controls id="audioElement">
+                Your browser does not support the audio element.
+            </audio>
+            <div id="audioInfo" style="margin-top: 10px;"></div>
+        </div>
+        
+        <div class="optimization-info">
+            <h4>🎯 ULTRA-FAST OPTIMIZATIONS ACTIVE (FIXED)</h4>
+            <ul class="optimization-list">
+                <li>Smart text truncation (100 characters max)</li>
+                <li>Intelligent chunk stopping (8-20 chunks)</li>
+                <li>Voice caching for instant access</li>
+                <li>Optimized audio processing</li>
+                <li>Speed boost (1.3x generation)</li>
+                <li>Minimum 0.5s audio guarantee</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let selectedVoice = 'tara';
+        let isGenerating = false;
+        
+        // Load voices on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadVoices();
+            setupEventListeners();
+        });
+        
+        function setupEventListeners() {
+            const textInput = document.getElementById('textInput');
+            textInput.addEventListener('input', updateCharCounter);
+            textInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    generateSpeech();
+                }
+            });
+        }
+        
+        function updateCharCounter() {
+            const textInput = document.getElementById('textInput');
+            const charCount = document.getElementById('charCount');
+            const length = textInput.value.length;
+            charCount.textContent = length;
+            
+            if (length > 100) {
+                charCount.style.color = '#ff6b6b';
+            } else if (length > 60) {
+                charCount.style.color = '#feca57';
+            } else {
+                charCount.style.color = '#4ecdc4';
+            }
+        }
+        
+        async function loadVoices() {
+            try {
+                const response = await fetch('/voices');
+                const voices = await response.json();
+                const voiceSelector = document.getElementById('voiceSelector');
+                
+                voiceSelector.innerHTML = '';
+                voices.forEach(voice => {
+                    const voiceOption = document.createElement('div');
+                    voiceOption.className = 'voice-option';
+                    voiceOption.onclick = () => selectVoice(voice.id, voiceOption);
+                    
+                    const cacheStatus = voice.cached ? '⚡ CACHED' : '⏳ Loading';
+                    voiceOption.innerHTML = `
+                        <strong>${voice.name}</strong><br>
+                        <small>${voice.description}</small><br>
+                        <small style="color: ${voice.cached ? '#4ecdc4' : '#feca57'};">${cacheStatus}</small>
+                    `;
+                    
+                    if (voice.id === selectedVoice) {
+                        voiceOption.classList.add('selected');
+                    }
+                    
+                    voiceSelector.appendChild(voiceOption);
+                });
+            } catch (error) {
+                console.error('Error loading voices:', error);
+            }
+        }
+        
+        function selectVoice(voiceId, element) {
+            selectedVoice = voiceId;
+            document.querySelectorAll('.voice-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+        
+        function generateInstant(text) {
+            document.getElementById('textInput').value = text;
+            updateCharCounter();
+            generateSpeech();
+        }
+        
+        async function generateSpeech() {
+            if (isGenerating) return;
+            
+            const textInput = document.getElementById('textInput');
+            const text = textInput.value.trim();
+            
+            if (!text) {
+                alert('Please enter some text to generate speech.');
+                return;
+            }
+            
+            isGenerating = true;
+            const generateBtn = document.getElementById('generateBtn');
+            generateBtn.disabled = true;
+            generateBtn.textContent = '🚀 GENERATING ULTRA-FAST...';
+            
+            updateStatus('Generating...', 'fast');
+            
+            const startTime = performance.now();
+            
+            try {
+                const response = await fetch('/generate_ultra_fast', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        voice: selectedVoice
+                    })
+                });
+                
+                const data = await response.json();
+                const endTime = performance.now();
+                const totalLatency = (endTime - startTime) / 1000;
+                
+                if (data.success) {
+                    playAudio(data.audio_url);
+                    updatePerformanceMetrics(data, totalLatency);
+                    
+                    // Update status based on performance
+                    if (data.ultra_fast && data.real_time) {
+                        updateStatus('ULTRA-FAST ⚡', 'ultra-fast');
+                    } else if (data.generation_time < 2) {
+                        updateStatus('FAST 🚀', 'fast');
+                    } else {
+                        updateStatus('SLOW ⚠️', 'slow');
+                    }
+                    
+                    showAudioInfo(data);
+                } else {
+                    alert('Error: ' + data.error);
+                    updateStatus('Error ❌', 'slow');
+                }
+            } catch (error) {
+                console.error('Error generating speech:', error);
+                alert('Error generating speech. Please try again.');
+                updateStatus('Error ❌', 'slow');
+            } finally {
+                isGenerating = false;
+                generateBtn.disabled = false;
+                generateBtn.textContent = '🚀 GENERATE ULTRA-FAST SPEECH';
+            }
+        }
+        
+        function updatePerformanceMetrics(data, totalLatency) {
+            document.getElementById('lastLatency').textContent = totalLatency.toFixed(2);
+            document.getElementById('speedRatio').textContent = data.speed_ratio.toFixed(2) + 'x';
+            document.getElementById('chunksUsed').textContent = data.chunks;
+        }
+        
+        function updateStatus(text, type) {
+            const statusElement = document.getElementById('statusIndicator');
+            const indicator = statusElement.querySelector('.status-indicator');
+            
+            indicator.className = 'status-indicator status-' + type;
+            statusElement.innerHTML = `<span class="status-indicator status-${type}"></span>${text}`;
+        }
+        
+        function playAudio(audioUrl) {
+            const audioPlayer = document.getElementById('audioPlayer');
+            const audioElement = document.getElementById('audioElement');
+            
+            audioElement.src = audioUrl;
+            audioPlayer.style.display = 'block';
+            audioElement.play();
+        }
+        
+        function showAudioInfo(data) {
+            const audioInfo = document.getElementById('audioInfo');
+            const optimizationStatus = data.ultra_fast ? '🚀 ULTRA-FAST' : data.generation_time < 2 ? '⚡ FAST' : '⚠️ SLOW';
+            const truncationNote = data.truncated ? ' (Text truncated for speed)' : '';
+            
+            audioInfo.innerHTML = `
+                <div style="margin-top: 10px;">
+                    <strong>Performance:</strong> ${optimizationStatus}<br>
+                    <strong>Generation Time:</strong> ${data.generation_time}s<br>
+                    <strong>Audio Duration:</strong> ${data.duration}s<br>
+                    <strong>Speed Ratio:</strong> ${data.speed_ratio}x<br>
+                    <strong>Chunks:</strong> ${data.chunks}${truncationNote}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html> 

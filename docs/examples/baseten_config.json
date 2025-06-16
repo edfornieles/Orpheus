@@ -1,0 +1,41 @@
+{
+  "baseten_deployment_info": {
+    "deployment_status": "INACTIVE - NEEDS PAYMENT METHOD",
+    "deployment_id": "deployment-1",
+    "model_version": "w70v863",
+    "instance_type": "H100MIG:3gx13x117",
+    "replicas": "0 of 1 active",
+    "scaling_window": "1 minute",
+    "recent_performance": {
+      "inference_calls_last_hour": 62,
+      "response_time_median": "2,154 ms"
+    },
+    "billing": {
+      "current_period_cost": "$2.37",
+      "status": "Add a payment method to activate deployment"
+    },
+    "created": "2 hours ago by ed fornieles",
+    "last_deployed": "2 hours ago",
+    "api_configuration": {
+      "model_id": "w70v863",
+      "endpoint_format": "https://model-{MODEL_ID}.api.baseten.co/environments/production/predict",
+      "stream_endpoint_format": "https://model-{MODEL_ID}.api.baseten.co/environments/production/predict_stream",
+      "api_key": "UPpt0FhL.ttGUuiWb5VvmLBCmcUSsjE92WVnJQaAq"
+    }
+  },
+  "action_required": {
+    "immediate": "Add payment method to Baseten account to activate deployment",
+    "steps": [
+      "1. Go to Baseten dashboard",
+      "2. Navigate to billing/payment settings", 
+      "3. Add a valid payment method",
+      "4. Activate the deployment",
+      "5. Update server configuration if needed"
+    ]
+  },
+  "backup_alternatives": {
+    "system_tts": "Currently working as fallback",
+    "openai_whisper": "Available for STT if needed",
+    "local_models": "Could implement local TTS if Baseten costs too much"
+  }
+} 

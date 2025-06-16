@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orpheus Archetype Voice Tester - 44 Distinct Voices</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            background: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .control-panel {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .stt-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #e74c3c;
+        }
+
+        .chat-section {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #27ae60;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        input[type="text"], textarea {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            min-width: 200px;
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        button {
+            padding: 12px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .recording {
+            background: #e74c3c !important;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .archetype-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .archetype-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 5px solid #9b59b6;
+        }
+
+        .archetype-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .archetype-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .archetype-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #2c3e50;
+            text-transform: capitalize;
+        }
+
+        .archetype-badge {
+            background: #9b59b6;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .voice-variants {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .voice-variant {
+            border: 2px solid #ecf0f1;
+            border-radius: 10px;
+            padding: 15px;
+            background: #f8f9fa;
+        }
+
+        .variant-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .gender-badge {
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .male { background: #3498db; color: white; }
+        .female { background: #e91e63; color: white; }
+
+        .voice-info {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .precision-buttons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .precision-btn {
+            flex: 1;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
+
+        .fp8-btn {
+            background: #27ae60;
+        }
+
+        .fp8-btn:hover {
+            background: #229954;
+        }
+
+        .fp16-btn {
+            background: #f39c12;
+        }
+
+        .fp16-btn:hover {
+            background: #e67e22;
+        }
+
+        .test-input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.loading {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+        }
+
+        .metric {
+            background: white;
+            padding: 8px;
+            border-radius: 5px;
+            text-align: center;
+            border: 1px solid #eee;
+        }
+
+        .metric-label {
+            display: block;
+            color: #666;
+            font-size: 0.7rem;
+        }
+
+        .metric-value {
+            display: block;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .conversation-log {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 2px solid #ecf0f1;
+        }
+
+        .chat-message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .user-message {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+
+        .ai-message {
+            background: #f3e5f5;
+            border-left: 4px solid #9c27b0;
+        }
+
+        .message-meta {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .archetype-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .voice-variants {
+                grid-template-columns: 1fr;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            input[type="text"], textarea {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎭 Orpheus Archetype Voice Tester</h1>
+            <p>Test all 44 distinct archetype voices with ChatGPT and Speech-to-Text</p>
+            <div class="stats">
+                <div class="stat">22 Archetypes</div>
+                <div class="stat">44 Voice Variants</div>
+                <div class="stat">FP8 & FP16 Testing</div>
+                <div class="stat">ChatGPT Integration</div>
+                <div class="stat">Speech-to-Text</div>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <div class="stt-section">
+                <h3>🎤 Speech-to-Text Testing</h3>
+                <div class="input-group">
+                    <button id="recordButton">🎤 Start Recording</button>
+                    <button id="clearTranscript">🗑️ Clear</button>
+                    <span id="recordingStatus"></span>
+                </div>
+                <textarea id="transcriptText" placeholder="Your speech will appear here, or type directly..."></textarea>
+            </div>
+
+            <div class="chat-section">
+                <h3>💬 ChatGPT Conversation</h3>
+                <div class="input-group">
+                    <input type="text" id="quickTestText" placeholder="Quick test text (or use STT above)">
+                    <button id="useTranscriptBtn">📝 Use Transcript</button>
+                    <button id="clearChatBtn">🗑️ Clear Chat</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="archetype-grid" id="archetypeGrid">
+            <!-- Archetype cards will be generated here -->
+        </div>
+
+        <div class="conversation-log" id="conversationLog">
+            <h3>💬 Conversation History</h3>
+            <div id="chatMessages"></div>
+        </div>
+    </div>
+
+    <script>
+        let recognition;
+        let isRecording = false;
+        let currentSessionId = 'archetype_test_' + Date.now();
+
+        // Archetype definitions with their characteristics
+        const archetypes = {
+            'outbacker': {
+                description: 'Rugged outdoor adventurers with Australian grit',
+                traits: ['rugged', 'hearty', 'outdoorsy', 'gruff'],
+                examples: ["G'day mate! Ready for an adventure in the outback?", "Fair dinkum, that's a beauty of a sunset!"]
+            },
+            'rocker': {
+                description: 'Rebellious musicians with brutal aggressive energy',
+                traits: ['brutal', 'aggressive', 'violent', 'intense', 'savage', 'raw', 'hostile', 'fierce'],
+                examples: ["🔥💀 SAVAGE RAGE!!! BRUTAL DESTROY!!! 💀🔥", "🔥💀 ANNIHILATE THE STAGE!!! FIERCE VIOLENT ROCK!!! 💀🔥"]
+            },
+            'clown': {
+                description: 'Playful entertainers with dramatic expression',
+                traits: ['quirky', 'playful', 'exaggerated', 'dramatic'],
+                examples: ["Ta-da! Isn't that amazing?", "Wonderful! Fantastic! Let's have some fun!"]
+            },
+            'royal': {
+                description: 'Elegant nobility with refined articulation',
+                traits: ['authoritative', 'poised', 'refined', 'dignified'],
+                examples: ["Indeed, one must proceed with proper dignity.", "Certainly, that is precisely correct."]
+            },
+            'beatnik': {
+                description: 'Cool poets with relaxed, artistic flow',
+                traits: ['philosophical', 'cool', 'artistic', 'contemplative'],
+                examples: ["Dig it, man. That's some far out poetry.", "Cool, really zen and thoughtful."]
+            },
+            'mystic': {
+                description: 'Ethereal seers with otherworldly wisdom',
+                traits: ['ethereal', 'wise', 'otherworldly', 'mystical'],
+                examples: ["The universe speaks through cosmic energy.", "Transcend the ordinary, embrace the mystical."]
+            },
+            'fortune_teller': {
+                description: 'Enigmatic seers with dramatic timing',
+                traits: ['enigmatic', 'mysterious', 'prophetic', 'dramatic'],
+                examples: ["I see... destiny calls to you.", "The cards reveal your future path."]
+            },
+            'mad_professor': {
+                description: 'Brilliant scientists with chaotic genius',
+                traits: ['brilliant', 'chaotic', 'eccentric', 'inventive'],
+                examples: ["Eureka! Fascinating! This experiment is brilliant!", "Remarkable! The data is extraordinary!"]
+            },
+            'angel': {
+                description: 'Celestial beings with overwhelming divine grace',
+                traits: ['divine', 'pure', 'commanding', 'celestial', 'transcendent', 'righteous'],
+                examples: ["✧ Blessed are those who seek divine righteousness and eternal peace... ✧", "✧ Sacred light transcends all darkness... be cleansed by heavenly grace... ✧"]
+            },
+            'devil': {
+                description: 'Dark tempters with overwhelming seductive corruption',
+                traits: ['sinister', 'charismatic', 'tempting', 'dark', 'seductive', 'corrupting'],
+                examples: ["♦ Delicious... such wickedly tempting possibilities await your corruption... ♦", "♦ Sinful desires flow through your soul... embrace the darkness within... ♦"]
+            },
+            'school_master': {
+                description: 'Wise educators with scholarly authority',
+                traits: ['distinguished', 'scholarly', 'authoritative', 'wise'],
+                examples: ["Attention class! Precisely, that is correct.", "Knowledge and discipline lead to wisdom."]
+            },
+            'cowboy': {
+                description: 'Frontier folk with confident drawl',
+                traits: ['rugged', 'confident', 'frontier_wise', 'independent'],
+                examples: ["Howdy partner, reckon we've got ourselves a situation.", "That's mighty fine work there."]
+            },
+            'philosopher': {
+                description: 'Ancient thinkers with timeless wisdom',
+                traits: ['wise', 'thoughtful', 'deliberate', 'profound'],
+                examples: ["Indeed, we must contemplate the nature of wisdom.", "Ponder this truth about existence."]
+            },
+            'sprite': {
+                description: 'Magical beings with whimsical energy',
+                traits: ['playful', 'whimsical', 'energetic', 'mischievous'],
+                examples: ["Sparkle and flutter! Magic is everywhere!", "Twinkle, twinkle! Let's create some wonder!"]
+            },
+            'urchin': {
+                description: 'Street-smart survivors with quick wit',
+                traits: ['streetwise', 'quick', 'cheeky', 'resourceful'],
+                examples: ["Oi! Quick thinking gets you out of trouble.", "Sharp wit and clever moves, that's the way!"]
+            },
+            'hypnotist': {
+                description: 'Mesmerizing controllers with entrancing rhythm',
+                traits: ['mesmerizing', 'controlled', 'mysterious', 'calm'],
+                examples: ["Relax... deeper... let sleep wash over you.", "Peaceful thoughts... deeper into tranquility."]
+            },
+            'coach': {
+                description: 'Motivational leaders with powerful energy',
+                traits: ['motivating', 'energetic', 'authoritative', 'passionate'],
+                examples: ["Hustle! Focus! Give it everything you've got!", "Power through! Drive harder! You can do this!"]
+            },
+            'vampire': {
+                description: 'Seductive immortals with dark allure',
+                traits: ['seductive', 'mysterious', 'intense', 'calculated'],
+                examples: ["Eternal darkness calls to you...", "Desire flows like blood through the night."]
+            },
+            'punk': {
+                description: 'Rebellious outcasts with edgy attitude',
+                traits: ['rebellious', 'aggressive', 'edgy', 'defiant'],
+                examples: ["Whatever! Rebel against the system!", "Anarchy and chaos - that's freedom!"]
+            },
+            'wizard': {
+                description: 'Mystical spellcasters with theatrical power',
+                traits: ['mystical', 'wise', 'commanding', 'theatrical'],
+                examples: ["Behold! Ancient magic flows through these words!", "Arcane power and mystic energy combine!"]
+            },
+            'witch': {
+                description: 'Enchanting sorceresses with magical presence',
+                traits: ['mysterious', 'powerful', 'wise', 'enchanting'],
+                examples: ["Enchant and mystify with ancient power.", "Magical wisdom flows through every spell."]
+            },
+            'detective': {
+                description: 'Cool investigators with noir sophistication',
+                traits: ['cool', 'analytical', 'confident', 'mysterious'],
+                examples: ["The case reveals its secrets slowly...", "Evidence points to an intriguing mystery."]
+            }
+        };
+
+        // Initialize Speech Recognition
+        function initSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+
+                recognition.onstart = function() {
+                    isRecording = true;
+                    document.getElementById('recordButton').textContent = '⏹️ Stop Recording';
+                    document.getElementById('recordButton').classList.add('recording');
+                    document.getElementById('recordingStatus').textContent = '🔴 Recording...';
+                };
+
+                recognition.onresult = function(event) {
+                    let finalTranscript = '';
+                    let interimTranscript = '';
+
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            finalTranscript += transcript;
+                        } else {
+                            interimTranscript += transcript;
+                        }
+                    }
+
+                    const transcriptElement = document.getElementById('transcriptText');
+                    if (finalTranscript) {
+                        transcriptElement.value += finalTranscript;
+                    }
+                };
+
+                recognition.onend = function() {
+                    isRecording = false;
+                    document.getElementById('recordButton').textContent = '🎤 Start Recording';
+                    document.getElementById('recordButton').classList.remove('recording');
+                    document.getElementById('recordingStatus').textContent = '';
+                };
+
+                recognition.onerror = function(event) {
+                    console.error('Speech recognition error:', event.error);
+                    document.getElementById('recordingStatus').textContent = '❌ Recognition error: ' + event.error;
+                };
+            } else {
+                document.getElementById('recordingStatus').textContent = '❌ Speech recognition not supported';
+            }
+        }
+
+        // Generate archetype cards
+        function generateArchetypeCards() {
+            const grid = document.getElementById('archetypeGrid');
+            
+            Object.entries(archetypes).forEach(([archetypeName, archetypeData]) => {
+                const card = document.createElement('div');
+                card.className = 'archetype-card';
+                
+                card.innerHTML = `
+                    <div class="archetype-header">
+                        <div class="archetype-title">${archetypeName.replace('_', ' ')}</div>
+                        <div class="archetype-badge">Archetype</div>
+                    </div>
+                    <p class="voice-info">${archetypeData.description}</p>
+                    <p style="font-size: 0.9rem; color: #666; margin-bottom: 15px;">
+                        <strong>Traits:</strong> ${archetypeData.traits.join(', ')}
+                    </p>
+                    
+                    <div class="voice-variants">
+                        <div class="voice-variant">
+                            <div class="variant-header">
+                                <strong>Male Voice</strong>
+                                <span class="gender-badge male">♂ Male</span>
+                            </div>
+                            <div class="precision-buttons">
+                                <button class="precision-btn fp8-btn" onclick="testVoice('archetype_${archetypeName}_male', 'fp8', '${archetypeName}')">
+                                    ⚡ Test FP8 (Speed)
+                                </button>
+                                <button class="precision-btn fp16-btn" onclick="testVoice('archetype_${archetypeName}_male', 'fp16', '${archetypeName}')">
+                                    🎯 Test FP16 (Quality)
+                                </button>
+                            </div>
+                            <input type="text" class="test-input" id="male_${archetypeName}_input" 
+                                   placeholder="Test text for male ${archetypeName}" 
+                                   value="${archetypeData.examples[0]}">
+                            <div class="status" id="male_${archetypeName}_status"></div>
+                            <div class="metrics" id="male_${archetypeName}_metrics"></div>
+                        </div>
+                        
+                        <div class="voice-variant">
+                            <div class="variant-header">
+                                <strong>Female Voice</strong>
+                                <span class="gender-badge female">♀ Female</span>
+                            </div>
+                            <div class="precision-buttons">
+                                <button class="precision-btn fp8-btn" onclick="testVoice('archetype_${archetypeName}_female', 'fp8', '${archetypeName}')">
+                                    ⚡ Test FP8 (Speed)
+                                </button>
+                                <button class="precision-btn fp16-btn" onclick="testVoice('archetype_${archetypeName}_female', 'fp16', '${archetypeName}')">
+                                    🎯 Test FP16 (Quality)
+                                </button>
+                            </div>
+                            <input type="text" class="test-input" id="female_${archetypeName}_input" 
+                                   placeholder="Test text for female ${archetypeName}"
+                                   value="${archetypeData.examples[1] || archetypeData.examples[0]}">
+                            <div class="status" id="female_${archetypeName}_status"></div>
+                            <div class="metrics" id="female_${archetypeName}_metrics"></div>
+                        </div>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        // Test voice function
+        async function testVoice(voiceId, precision, archetype) {
+            const gender = voiceId.includes('_male') ? 'male' : 'female';
+            const inputId = `${gender}_${archetype}_input`;
+            const statusId = `${gender}_${archetype}_status`;
+            const metricsId = `${gender}_${archetype}_metrics`;
+            
+            const text = document.getElementById(inputId).value.trim();
+            if (!text) {
+                updateStatus(statusId, 'Please enter some text to test', 'error');
+                return;
+            }
+
+            // Create modified voice ID with precision
+            const modifiedVoiceId = precision === 'fp16' ? voiceId.replace('archetype_', 'archetype_') + '_fp16' : voiceId;
+            
+            updateStatus(statusId, `Testing ${precision.toUpperCase()} precision...`, 'loading');
+            
+            const startTime = Date.now();
+            
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        voice: modifiedVoiceId,
+                        context: 'archetype_test',
+                        emotion_mode: 'natural',
+                        add_emotion_tags: true
+                    })
+                });
+
+                const result = await response.json();
+                const totalTime = Date.now() - startTime;
+
+                if (result.success) {
+                    // Play audio
+                    const audio = new Audio(`data:audio/wav;base64,${result.audio_base64}`);
+                    audio.play();
+
+                    updateStatus(statusId, `✅ ${precision.toUpperCase()} test successful!`, 'success');
+                    updateMetrics(metricsId, {
+                        'Gen Time': `${result.metrics.generation_time}s`,
+                        'Audio': `${result.metrics.audio_duration}s`,
+                        'Words': result.metrics.word_count,
+                        'RTF': result.metrics.rtf,
+                        'Total': `${(totalTime/1000).toFixed(2)}s`,
+                        'Precision': precision.toUpperCase()
+                    });
+                } else {
+                    updateStatus(statusId, `❌ Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                updateStatus(statusId, `❌ Network error: ${error.message}`, 'error');
+            }
+        }
+
+        // Chat with voice function
+        async function chatWithVoice(voiceId, precision, text) {
+            const chatMessages = document.getElementById('chatMessages');
+            
+            // Add user message
+            addChatMessage('user', text, voiceId);
+            
+            try {
+                const response = await fetch('/conversation/respond', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        voice: voiceId,
+                        session_id: currentSessionId
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Add AI response
+                    addChatMessage('ai', result.ai_response, voiceId, result.metrics);
+                    
+                    // Play audio
+                    const audio = new Audio(`data:audio/wav;base64,${result.audio_base64}`);
+                    audio.play();
+                } else {
+                    addChatMessage('ai', `Error: ${result.error}`, voiceId);
+                }
+            } catch (error) {
+                addChatMessage('ai', `Network error: ${error.message}`, voiceId);
+            }
+        }
+
+        // Add chat message to log
+        function addChatMessage(type, message, voice, metrics = null) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${type}-message`;
+            
+            let metricsHtml = '';
+            if (metrics) {
+                metricsHtml = `
+                    <div style="font-size: 0.8rem; color: #666; margin-top: 5px;">
+                        Total: ${metrics.total_time}s | Voice: ${metrics.voice} | Precision: ${metrics.precision}
+                    </div>
+                `;
+            }
+            
+            messageDiv.innerHTML = `
+                <div class="message-meta">
+                    ${type === 'user' ? '👤 You' : '🤖 AI'} - ${new Date().toLocaleTimeString()} 
+                    ${voice ? `(${voice})` : ''}
+                </div>
+                <div>${message}</div>
+                ${metricsHtml}
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Update status
+        function updateStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+        }
+
+        // Update metrics
+        function updateMetrics(elementId, metrics) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = Object.entries(metrics).map(([key, value]) => 
+                `<div class="metric">
+                    <span class="metric-label">${key}</span>
+                    <span class="metric-value">${value}</span>
+                </div>`
+            ).join('');
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            generateArchetypeCards();
+            initSpeechRecognition();
+
+            document.getElementById('recordButton').addEventListener('click', function() {
+                if (isRecording) {
+                    recognition.stop();
+                } else {
+                    recognition.start();
+                }
+            });
+
+            document.getElementById('clearTranscript').addEventListener('click', function() {
+                document.getElementById('transcriptText').value = '';
+            });
+
+            document.getElementById('useTranscriptBtn').addEventListener('click', function() {
+                const transcript = document.getElementById('transcriptText').value.trim();
+                if (transcript) {
+                    document.getElementById('quickTestText').value = transcript;
+                }
+            });
+
+            document.getElementById('clearChatBtn').addEventListener('click', function() {
+                document.getElementById('chatMessages').innerHTML = '';
+                currentSessionId = 'archetype_test_' + Date.now();
+            });
+
+            // Add quick test functionality
+            document.getElementById('quickTestText').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const text = this.value.trim();
+                    if (text) {
+                        // Test with a default voice
+                        chatWithVoice('archetype_royal_female', 'fp8', text);
+                        this.value = '';
+                    }
+                }
+            });
+        });
+
+        // Global function for testing from outside
+        window.testArchetypeVoice = testVoice;
+        window.chatWithArchetypeVoice = chatWithVoice;
+    </script>
+</body>
+</html> 
